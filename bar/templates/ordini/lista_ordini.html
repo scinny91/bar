@@ -61,7 +61,7 @@
         </td>
 
         <td><a href="{% url 'modifica_ordine' p.id %}" class="btn btn-sm btn-primary">Modifica️</a>
-            <form action="{% url 'elimina_prodotto' p.id %}" method="post" style="display:inline;">
+            <form action="{% url 'elimina_ordine' p.id %}" method="post" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');">Elimina</button>
             </form></td>

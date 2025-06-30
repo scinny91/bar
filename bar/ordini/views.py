@@ -11,30 +11,47 @@ from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRO
 def nuovo_ordine(request):
     prodotti = Prodotto.objects.all().order_by('categoria', 'sottocategoria', 'nome')
     if request.method == 'POST':
-        # Leggi quantità inviate (qty_<id>)
         ordine = Ordine.objects.create(stato='in_attesa')  # stato iniziale
+        ordine.cliente = request.POST.get('nome_ordine', '')
+        ordine.save()
 
         for prodotto in prodotti:
-            qty = request.POST.get(f'qty_{prodotto.id}', '0')
-            try:
-                qty = int(qty)
-            except ValueError:
-                qty = 0
+            qty_list = request.POST.getlist(f'qty_{prodotto.id}[]')
+            opt_list = request.POST.getlist(f'opt_{prodotto.id}[]')
 
-            if qty > 0:
-                OrdineRiga.objects.create(
-                    ordine=ordine,
-                    prodotto=prodotto,
-                    quantita=qty,
-                    stato='in_attesa'
-                )
-        return redirect('lista_ordini')  # o altra pagina di conferma
+            for qty_str, opt in zip(qty_list, opt_list):
+                try:
+                    qty = int(qty_str)
+                except ValueError:
+                    qty = 0
+
+                if qty > 0:
+                    OrdineRiga.objects.create(
+                        ordine=ordine,
+                        prodotto=prodotto,
+                        quantita=qty,
+                        stato='in_attesa',
+                        opzioni=opt
+                    )
+
+        return redirect('lista_ordini')
+    prodotti_con_righe = []
+    for prodotto in prodotti:
+        righe = [{'quantita': 0, 'opzioni': ''}]  # riga vuota
+        prodotti_con_righe.append({
+            'nome': prodotto.nome,
+            'righe': righe,
+            'categoria': prodotto.categoria,
+            'sottocategoria': prodotto.sottocategoria,
+            'prezzo': prodotto.prezzo,
+            'id': prodotto.id
+        })
     context = {
         'titolo_pagina': 'Nuovo Ordine',
         'bottone_submit': 'Inserisci Ordine',
         'quantità': {},  # vuoto all'inizio
         'nome_ordine': '',
-        'prodotti': prodotti,
+        'prodotti': prodotti_con_righe,
         'opzioni': OPTION_CHOICES,
         'is_new': True
     }
