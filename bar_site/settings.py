@@ -14,7 +14,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'bar',
+    'bar.apps.BarConfig',
 ]
 
 MIDDLEWARE = [
@@ -45,7 +45,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'bar_site.wsgi.application'
+WSGI_APPLICATION = 'bar_app.wsgi.application'
 
 DATABASES = {
     'default': {

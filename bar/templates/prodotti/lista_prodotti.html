@@ -1,0 +1,32 @@
+
+{% extends 'bar/base.html' %}
+{% block content %}
+<h2>Catalogo prodotti</h2>
+<a href="{% url 'nuovo_prodotto' %}" class="btn btn-success mb-3"> + Nuovo Prodotto</a>
+
+<form method="post">{% csrf_token %}
+<table class="table">
+    <tr>
+            <th>Prodotto</th>
+            <th>Prezzo</th>
+            <th>Categoria</th>
+            <th>Sottocategoria</th>
+            <th>Azioni</th>
+    </tr>
+    {% for p in prodotti %}
+    <tr>
+        <td>{{ p.nome }}</td>
+        <td>€{{ p.prezzo }}</td>
+        <td>{{ p.categoria }}</td>
+        <td>{{ p.sottocategoria }}</td>
+        <td><a href="{% url 'modifica_prodotto' p.id %}" class="btn btn-primary btn-sm">Modifica</a>
+            <form action="{% url 'elimina_prodotto' p.id %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo prodotto?');">Elimina</button>
+            </form></td>
+
+    </tr>
+    {% endfor %}
+</table>
+</form>
+{% endblock %}

@@ -2,8 +2,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import Product, Order, OrderItem
 from django.utils import timezone
+
+from bar.ordini.models import Ordine, OrdineRiga
+from bar.prodotti.models import Prodotto
 
 def user_login(request):
     if request.method == "POST":
@@ -21,22 +23,23 @@ def user_logout(request):
 
 @login_required
 def cassa(request):
-    prodotti = Product.objects.all()
+    prodotti = Prodotto.objects.all()
     if request.method == "POST":
-        ordine = Order.objects.create(status="in_attesa", created_at=timezone.now())
+        ordine = Ordine.objects.create(stato="in_attesa", created_at=timezone.now())
         for prodotto in prodotti:
             qty = int(request.POST.get(f"qty_{prodotto.id}", 0))
             if qty > 0:
-                OrderItem.objects.create(order=ordine, product=prodotto, quantity=qty)
+                OrdineRiga.objects.create(ordine=ordine, prodotto=prodotto, quantita=qty)
         return redirect("cassa")
     return render(request, "bar/cassa.html", { "prodotti": prodotti })
 
 @login_required
 def cucina(request):
-    ordini = Order.objects.prefetch_related("items__product").order_by("-created_at")
+    ordini = Ordine.objects.prefetch_related("items__prodotto").order_by("-creato")
     if request.method == "POST":
-        ordine = Order.objects.get(pk=request.POST["ordine_id"])
+        ordine = Ordine.objects.get(pk=request.POST["ordine_id"])
         ordine.status = request.POST["nuovo_stato"]
         ordine.save()
         return redirect("cucina")
     return render(request, "bar/cucina.html", { "ordini": ordini })
+
