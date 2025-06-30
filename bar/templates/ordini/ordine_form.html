@@ -1,0 +1,94 @@
+{% extends 'bar/base.html' %}
+{% load dict_extras %} {# serve per dict_get #}
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ titolo_pagina }}</h2>
+    <form method="post" class="row g-3">
+        {% csrf_token %}
+        {% regroup prodotti by categoria as prodotti_per_categoria %}
+        {% for categoria_group in prodotti_per_categoria %}
+            <h4 class="mt-4">{{ categoria_group.grouper }}</h4>
+
+            {% regroup categoria_group.list by sottocategoria as prodotti_per_sottocategoria %}
+            {% for sottocategoria_group in prodotti_per_sottocategoria %}
+                <h5 class="ms-3">{{ sottocategoria_group.grouper }}</h5>
+
+                {% for prodotto in sottocategoria_group.list %}
+
+                  <div class="col-12 d-flex align-items-center justify-content-between border-bottom py-2 ps-4">
+                    <div class="mb-2">
+                        <strong>{{ prodotto.nome }}</strong><br>
+                        <small class="text-muted">€{{ prodotto.prezzo }}</small>
+                    </div>
+                    <div id="prodotto-{{ prodotto.id }}-container" class="mb-10">
+                        {% for riga in prodotto.righe %}
+                        <div class="row gy-2 mb-2">
+                            <div class="col-4">
+                              <input value = "{{ riga.quantita }}" type="number" name="qty_{{ prodotto.id }}[]" min="0" class="form-control" placeholder="Quantità">
+                            </div>
+                            <div class="col-6">
+                              <select name="opt_{{ prodotto.id }}[]" class="form-control">
+                                <option value="">--</option>
+                                {% for value, label in opzioni %}
+                                    <option value="{{ value }}" {% if riga.opzioni == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                              </select>
+                            </div>
+                            <div class="col-2">
+                              <button type="button" class="btn btn-outline-secondary" onclick="aggiungiRiga({{ prodotto.id }})">+</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+
+        <div class="col-12 mt-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
+            <a href="{% url 'lista_ordini' %}" class="btn btn-secondary">Annulla</a>
+
+            <input type="text"
+                   name="nome_ordine"
+                   placeholder="Nome Ordine"
+                   class="form-control w-sm-50"
+                   value="{{ nome_ordine|default:'' }}"
+                   required>
+
+            <button type="submit" class="btn btn-primary">
+                {{ bottone_submit|default:"Salva Ordine" }}
+            </button>
+        </div>
+    </form>
+</div>
+<script>
+    function aggiungiRiga(prodottoId) {
+      const container = document.getElementById(`prodotto-${prodottoId}-container`);
+      console.log('add row')
+      const row = document.createElement('div');
+      row.className = 'row gy-2 mb-2';
+
+      row.innerHTML = `
+        <div class="col-4">
+          <input type="number" name="qty_${prodottoId}[]" min="0" class="form-control" placeholder="Quantità">
+        </div>
+        <div class="col-6">
+          <select name="opt_${prodottoId}[]" class="form-control">
+            <option value="">--</option>
+            {% for value, label in opzioni %}
+              <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-2">
+          <button type="button" class="btn btn-outline-danger" onclick="this.closest('.row').remove()">−</button>
+        </div>
+      `;
+
+      container.appendChild(row);
+    }
+    </script>
+
+
+{% endblock %}
+

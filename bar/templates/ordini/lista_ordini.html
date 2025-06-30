@@ -1,0 +1,74 @@
+{% extends 'bar/base.html' %}
+{% load dict_extras %}
+{% block content %}
+<h2><a href="{% url 'nuovo_ordine' %}" class="btn btn-success mb-3"> + Nuovo Ordine</a> Elenco ordini </h2>
+
+
+<div class="row">
+  {% for stato, categorie in totali_per_stato_cat_sottocat.items %}
+    <div class="col-md-4 mb-4">
+      <div class="card h-100">
+        <div class="card-header bg-secondary text-white text-capitalize">
+           {{ stato|replace:"_, " }}
+        </div>
+        <div class="card-body">
+          {% for categoria, sottocategorie in categorie.items %}
+            <h5>{{ categoria }}</h5>
+            <ul>
+              {% for sottocategoria, valori in sottocategorie.items %}
+                {% if valori.quantità > 0 %}
+                <li>
+                  <strong>{{ sottocategoria }}</strong> –
+                  Quantità: {{ valori.quantità }},
+                  Totale: €{{ valori.totale|floatformat:2 }}
+                </li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<form method="post">{% csrf_token %}
+<table class="table">
+    <tr>
+        <th>ID</th>
+        <th>Stato</th>
+        <th>Cliente</th>
+        <th>Data</th>
+        <th>Totale</th>
+        <th>Righe</th>
+        <th>Azioni</th>
+    </tr>
+    {% for p in ordini %}
+    <tr>
+        <td>{{ p.id }}</td>
+        <td>{{ p.stato }}</td>
+        <td>{{ p.cliente }}</td>
+        <td>{{ p.creato }}</td>
+        <td>{{ p.totale }}</td>
+        <td>
+          <ul class="mb-0 ps-3">
+            {% for riga in p.items.all %}
+              <li>{{ riga.quantita }} - {{ riga.prodotto.nome }}</li>
+            {% empty %}
+              <li><em>Nessun prodotto</em></li>
+            {% endfor %}
+          </ul>
+        </td>
+
+        <td><a href="{% url 'modifica_ordine' p.id %}" class="btn btn-sm btn-primary">Modifica️</a>
+            <form action="{% url 'elimina_prodotto' p.id %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');">Elimina</button>
+            </form></td>
+        </td>
+
+    </tr>
+    {% endfor %}
+</table>
+</form>
+{% endblock %}

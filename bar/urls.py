@@ -8,4 +8,5 @@ urlpatterns = [
     path("cassa/", views.cassa, name="cassa"),
     path("cucina/", views.cucina, name="cucina"),
     path('', include('bar.prodotti.urls')),
+    path('', include('bar.ordini.urls')),
 ]

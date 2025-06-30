@@ -9,17 +9,14 @@ STATUS_CHOICES = [
         ('completato', 'Completato'),
     ]
 
-CATEGORIE_PRODOTTO = [
-    ("bar", "bar"),
-    ("cucina", "cucina"),
-]
-SOTTOCATEGORIE_PRODOTTO = [
-    ("patatine", "patatine"),
-    ("piastra", "piastra"),
-    ("affettato", "affettato"),
-    ("gnocco", "gnocco"),
-    ("", "-"),
-]
+OPTION_CHOICES = [
+        ('cipolla', 'Cipolla'),
+        ('peperoni', 'Peperoni'),
+        ('cipolla&peperoni', 'Cipolla e peperoni'),
+        ('asperto', 'Asporto'),
+        ('meta', 'Taglia a metà'),
+    ]
+
 
 
 class Ordine(models.Model):
@@ -53,6 +50,7 @@ class OrdineRiga(models.Model):
     prodotto = models.ForeignKey(Prodotto, on_delete=models.CASCADE)
     quantita = models.PositiveIntegerField()
     stato = models.CharField(max_length=20, choices=STATUS_CHOICES, default='in_attesa')
+    opzioni =  models.CharField(max_length=20, choices=OPTION_CHOICES, default='')
 
 
 
