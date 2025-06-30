@@ -1,0 +1,28 @@
+
+{% extends 'bar/base.html' %}
+{% block content %}
+<h2>Ordini in Cucina</h2>
+{% for ordine in ordini %}
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>Ordine {{ ordine.id }}</strong> - {{ ordine.get_status_display }} - {{ ordine.created_at|date:"H:i" }}
+    </div>
+    <div class="card-body">
+        <ul>
+        {% for item in ordine.items.all %}
+            <li>{{ item.quantity }}x {{ item.product.name }}</li>
+        {% endfor %}
+        </ul>
+        <form method="post">{% csrf_token %}
+            <input type="hidden" name="ordine_id" value="{{ ordine.id }}">
+            <select name="nuovo_stato" class="form-select d-inline w-auto">
+                <option value="in_attesa" {% if ordine.status == "in_attesa" %}selected{% endif %}>In Attesa</option>
+                <option value="in_preparazione" {% if ordine.status == "in_preparazione" %}selected{% endif %}>In Preparazione</option>
+                <option value="completato" {% if ordine.status == "completato" %}selected{% endif %}>Completato</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Aggiorna</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

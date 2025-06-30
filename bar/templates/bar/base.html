@@ -1,0 +1,19 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>BarApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+    <div class="container">
+        <nav class="mb-4">
+            <a href="/cassa/" class="btn btn-primary">Cassa</a>
+            <a href="/cucina/" class="btn btn-success">Cucina</a>
+            <a href="/logout/" class="btn btn-secondary float-end">Logout</a>
+        </nav>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
