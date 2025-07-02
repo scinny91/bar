@@ -1,8 +1,18 @@
 {% extends 'bar/base.html' %}
 {% load dict_extras %}
 {% block content %}
-<h2><a href="{% url 'nuovo_ordine' %}" class="btn btn-success mb-3"> + Nuovo Ordine</a> Elenco ordini </h2>
-
+<h2> Elenco ordini {{date}}</h2>
+<a href="{% url 'nuovo_ordine' %}" class="btn btn-success mb-3"> + Nuovo Ordine</a>
+ {% if data_precedente != "" %}
+    <a href="{% url 'lista_ordini' %}?data_ordine={{ data_precedente }}" class="btn btn-outline-dark mb-3">
+    Ordini del {{ data_precedente }}
+    </a>
+{% endif %}
+{% if data_successiva != "" %}
+    <a href="{% url 'lista_ordini' %}?data_ordine={{ data_successiva }}" class="btn btn-outline-dark mb-3">
+    Ordini del {{ data_successiva }}
+    </a>
+{% endif %}
 
 <div class="row">
   {% for stato, categorie in totali_per_stato_cat_sottocat.items %}

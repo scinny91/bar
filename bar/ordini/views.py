@@ -1,10 +1,13 @@
 from collections import defaultdict
 from django.utils.timezone import localdate
+from django.db.models.functions import TruncDate
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 from bar.ordini.models import Ordine, OrdineRiga, STATUS_CHOICES, OPTION_CHOICES
 from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO
+
+from datetime import datetime
 
 
 @login_required
@@ -59,9 +62,34 @@ def nuovo_ordine(request):
 
 @login_required
 def lista_ordini(request):
-    oggi = localdate()  # restituisce la data odierna (timezone aware)
-    ordini = Ordine.objects.filter(creato__date=oggi).order_by('creato')
+    data_ordine = request.GET.get('data_ordine')
+    if not data_ordine:
+        data_ordine = localdate()    # restituisce la data odierna (timezone aware)
+    else:
+        data_ordine = datetime.strptime(data_ordine, '%d-%m-%Y')
 
+
+    date_distinte = Ordine.objects.annotate(data=TruncDate('creato')) \
+        .values_list('data', flat=True) \
+        .distinct()
+
+    # Data precedente a oggi
+    data_precedente = date_distinte.filter(data__lt=data_ordine).order_by('-data').first()
+    if data_precedente:
+        data_precedente = data_precedente.strftime('%d-%m-%Y')
+    else:
+        data_precedente = ""
+
+    # Data successiva a oggi
+    data_successiva = date_distinte.filter(data__gt=data_ordine).order_by('data').first()
+    if data_successiva:
+        data_successiva = data_successiva.strftime('%d-%m-%Y')
+    else:
+        data_successiva = ""
+
+
+
+    ordini = Ordine.objects.filter(creato__date=data_ordine).order_by('creato')
     totali = {}
     for stato_ordine in STATUS_CHOICES:
         totali[stato_ordine[0]] = {}
@@ -88,6 +116,9 @@ def lista_ordini(request):
 
     context = { "ordini": ordini,
                 "totali_per_stato_cat_sottocat": totali,
+                "date": data_ordine.strftime('%d-%m-%Y'),
+                "data_precedente": data_precedente,
+                "data_successiva": data_successiva,
     }
 
     return render(request, "ordini/lista_ordini.html", context)

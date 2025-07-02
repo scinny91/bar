@@ -2,7 +2,7 @@ services:
   web:
     build: .
     #command: gunicorn bar_app.wsgi:application --bind 0.0.0.0:8000
-    command: gunicorn bar_app.wsgi:application --bind 0.0.0.0:8000 --reload
+    command: gunicorn bar_app.wsgi:application --bind 0.0.0.0:8000
     ports:
       - "8000:8000"
     volumes:
@@ -15,6 +15,13 @@ services:
   migrate:
     build: .
     command: python manage.py migrate
+    volumes:
+      - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=bar_site.settings
+  collectstatic:
+    build: .
+    command: python manage.py collectstatic --noinput
     volumes:
       - .:/app
     environment:
