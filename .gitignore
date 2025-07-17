@@ -1,3 +1,8 @@
 db.sqlite3
-*.pyc
 .venv
+
+# Ignora tutti i file .pyc
+*.pyc
+
+# Ignora tutte le cartelle __pycache__ ovunque nel progetto
+__pycache__/
