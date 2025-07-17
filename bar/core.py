@@ -9,11 +9,16 @@ class ParametroGenerico(models.Model):
 
     @classmethod
     def get_choices(cls, with_void=True):
-        qs = cls.objects.all().order_by('valore')
-        choices = [(obj.chiave, obj.valore) for obj in qs]
-        if with_void:
-            choices.insert(0, ("", "-"))
-        return choices
+        try:
+            qs = cls.objects.all().order_by('valore')
+            choices = [(obj.chiave, obj.valore) for obj in qs]
+            if with_void:
+                choices.insert(0, ("", "-"))
+            return choices
+        except Exception:
+            # fallback: lista vuota o una scelta di default
+            return [("", "-")] if with_void else []
+
 
     def __str__(self):
         return self.valore
