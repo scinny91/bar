@@ -1,17 +1,22 @@
 {% extends 'bar/base.html' %}
 {% load dict_extras %}
 {% block content %}
-<h2> Elenco ordini {{date}}</h2>
-<a href="{% url 'nuovo_ordine' %}" class="btn btn-success mb-3"> + Nuovo Ordine</a>
- {% if data_precedente != "" %}
-    <a href="{% url 'lista_ordini' %}?data_ordine={{ data_precedente }}" class="btn btn-outline-dark mb-3">
-    << Ordini del {{ data_precedente }}
-    </a>
-{% endif %}
-{% if data_successiva != "" %}
-    <a href="{% url 'lista_ordini' %}?data_ordine={{ data_successiva }}" class="btn btn-outline-dark mb-3">
-    Ordini del {{ data_successiva }} >>
-    </a>
+
+{% if not is_riepilogo %}
+    <h2> Elenco ordini in corso {{date}}</h2>
+    <a href="{% url 'nuovo_ordine' %}" class="btn btn-success mb-3"> + Nuovo Ordine</a>
+     {% if data_precedente != "" %}
+        <a href="{% url 'lista_ordini' %}?data_ordine={{ data_precedente }}" class="btn btn-outline-dark mb-3">
+        << Ordini del {{ data_precedente }}
+        </a>
+    {% endif %}
+    {% if data_successiva != "" %}
+        <a href="{% url 'lista_ordini' %}?data_ordine={{ data_successiva }}" class="btn btn-outline-dark mb-3">
+        Ordini del {{ data_successiva }} >>
+        </a>
+    {% endif %}
+{% else %}
+    <h2> Elenco ordini totali {{date}}</h2>
 {% endif %}
 
 <div class="row">
@@ -51,7 +56,9 @@
         <th>Data</th>
         <th>Totale</th>
         <th>Righe</th>
-        <th>Azioni</th>
+        {% if not is_riepilogo %}
+            <th>Azioni</th>
+        {% endif %}
     </tr>
     {% for p in ordini %}
     <tr>
@@ -63,27 +70,31 @@
         <td>
           <ul class="mb-0 ps-3">
             {% for riga in p.items.all %}
-              <li>{{ riga }}</li>
+              <li>{{ riga }}
+                  {% if is_riepilogo %}
+             [{{ riga.stato }}]
+        {% endif %} </li>
             {% empty %}
               <li><em>Nessun prodotto</em></li>
             {% endfor %}
           </ul>
         </td>
-
-        <td>
-            <a href="{% url 'modifica_ordine' p.id %}" class="btn btn-sm btn-primary" title="Modifica">
-                <i class="fa-solid fa-pen"></i>
-            </a>
-            <a href="{% url 'conferma_ordine' p.id %}" class="btn btn-sm btn-success" title="Conferma">
-                <i class="fa-solid fa-check"></i>
-            </a>
-            <form action="{% url 'elimina_ordine' p.id %}" method="post" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');" title="Elimina">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            </form></td>
-        </td>
+        {% if not is_riepilogo  %}
+            <td>
+                <a href="{% url 'modifica_ordine' p.id %}" class="btn btn-sm btn-primary" title="Modifica">
+                    <i class="fa-solid fa-pen"></i>
+                </a>
+                <a href="{% url 'conferma_ordine' p.id %}" class="btn btn-sm btn-success" title="Conferma">
+                    <i class="fa-solid fa-check"></i>
+                </a>
+                <form action="{% url 'elimina_ordine' p.id %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');" title="Elimina">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </form></td>
+            </td>
+        {% endif %}
 
     </tr>
     {% endfor %}

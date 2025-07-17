@@ -48,6 +48,24 @@ def nuovo_ordine(request):
 def lista_ordini(request):
     data_ordine = request.GET.get('data_ordine')
     data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
+    StatoAttesa = Stato.objects.get(chiave='in_attesa')
+    StatoInPreparazione = Stato.objects.get(chiave='in_preparazione')
+    ordini = Ordine.objects.filter(creato__date=data_ordine, stato__in=[StatoAttesa, StatoInPreparazione]).order_by('creato')
+    totali = Ordine.calcola_totali(ordini)
+    context = { "ordini": ordini,
+                "totali_per_stato_cat_sottocat": totali,
+                "date": data_ordine.strftime('%d-%m-%Y'),
+                "data_precedente": data_precedente,
+                "data_successiva": data_successiva,
+                "is_riepilogo": False
+    }
+
+    return render(request, "ordini/lista_ordini.html", context)
+
+@login_required
+def riepilogo_ordini(request):
+    data_ordine = request.GET.get('data_ordine')
+    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
     ordini = Ordine.objects.filter(creato__date=data_ordine).order_by('creato')
     totali = Ordine.calcola_totali(ordini)
     context = { "ordini": ordini,
@@ -55,6 +73,7 @@ def lista_ordini(request):
                 "date": data_ordine.strftime('%d-%m-%Y'),
                 "data_precedente": data_precedente,
                 "data_successiva": data_successiva,
+                "is_riepilogo": True
     }
 
     return render(request, "ordini/lista_ordini.html", context)
