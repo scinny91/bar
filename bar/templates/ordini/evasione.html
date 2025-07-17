@@ -1,32 +1,74 @@
 {% extends 'bar/base.html' %}
+
+{% block extra_head %}
+  <meta http-equiv="refresh" content="10">
+  <style>
+  tr.bg-color-even td {
+       background-color: #f8f9fa !important;
+    }
+  tr.bg-color-odd td {
+      background-color: #e9ecef !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-  <h2>Righe da evadere – Categoria: <strong>{{ categoria }}</strong></h2>
+  <h2>{{ title }}</h2>
 
-  {% if righe %}
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>Ordine #</th>
-          <th>Data</th>
-          <th>Prodotto</th>
-          <th>Quantità</th>
-          <th>Sottocategoria</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for riga in righe %}
+
+  {% if righe_raggruppate %}
+    {% for gruppo in righe_raggruppate %}
+      <h4>{{ gruppo.categoria }} – {{ gruppo.sottocategoria }}</h4>
+
+      <table class="table mb-4">
+        <thead class="table-light">
           <tr>
-            <td>{{ riga.ordine.id }}</td>
-            <td>{{ riga.ordine.creato|date:"d/m/Y H:i" }}</td>
-            <td>{{ riga.prodotto.nome }}</td>
-            <td>{{ riga.quantita }}</td>
-            <td>{{ riga.prodotto.sottocategoria }}</td>
-            <td>{{ riga.prodotto.opzioni }}</td>
+            <th>Ordine #</th>
+            <th>Cliente</th>
+            <th>Data</th>
+            <th>Prodotto</th>
+            <th>Opzioni</th>
+            <th>Quantità</th>
+            <th>Stato</th>
+            {% if is_consegna %}
+              <th>Azioni</th>
+            {% endif %}
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {% with last_id=None class_toggle=0 %}
+            {% for riga_ordine in gruppo.righe_ordini %}
+              {% if last_id != riga_ordine.ordine.id %}
+                {% with class_toggle=class_toggle|add:1 %}
+                {% endwith %}
+              {% endif %}
+              <tr class="{% if class_toggle|divisibleby:2 %}bg-color-even{% else %}bg-color-odd{% endif %}">
+                <td>{{ riga_ordine.ordine.id }}</td>
+                <td>{{ riga_ordine.ordine.cliente }}</td>
+                <td>{{ riga_ordine.ordine.creato|date:"H:i" }}</td>
+                <td>{{ riga_ordine.prodotto.nome }}</td>
+                <td>{{ riga_ordine.opzioni }}</td>
+                <td>{{ riga_ordine.quantita }}</td>
+                <td>{{ riga_ordine.stato }}</td>
+                {% if is_consegna %}
+                <td>
+                  <a href="{% url 'set_stato_riga_ordine' riga_ordine.id 'completato' %}?data_ordine={{ request.GET.data_ordine }}" class="btn btn-success" title="Segna come COMPLETATO">
+                    <i class="fa-solid fa-check"></i>
+                  </a>
+                  <a href="{% url 'set_stato_riga_ordine' riga_ordine.id 'non_trovato' %}?data_ordine={{ request.GET.data_ordine }}" class="btn btn-warning" title="Segna come NON TROVATO">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                  </a>
+                </td>
+                {% endif %}
+              </tr>
+              {% with last_id=riga_ordine.ordine.id %}
+              {% endwith %}
+            {% endfor %}
+          {% endwith %}
+        </tbody>
+      </table>
+    {% endfor %}
   {% else %}
     <div class="alert alert-warning">Nessuna riga da evadere per questa categoria.</div>
   {% endif %}

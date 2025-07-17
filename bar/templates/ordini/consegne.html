@@ -1,0 +1,53 @@
+{% extends 'bar/base.html' %}
+{% block content %}
+
+<h2>Righe da Evadere – Categoria: cucina</h2>
+
+<table class="table table-bordered table-striped table-sm align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Ordine #</th>
+      <th>Ora</th>
+      <th>Prodotto</th>
+      <th>Quantità</th>
+      <th>Opzioni</th>
+      <th>Stato</th>
+      <th>Azioni</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for riga in righe %}
+    <tr class="ordine-{{ riga.ordine.id }} {% if riga.stato == 'completato' %}table-success{% endif %}">
+      <td>#{{ riga.ordine.id }}</td>
+      <td>{{ riga.ordine.creato|date:"H:i" }}</td>
+      <td>{{ riga.prodotto.nome }}</td>
+      <td>{{ riga.quantita }}</td>
+      <td>{{ riga.opzioni|default:"—" }}</td>
+      <td>{{ riga.stato }}</td>
+      <td>
+        {% if riga.stato != 'completato' %}
+        <form method="post" class="d-inline">{% csrf_token %}
+          <input type="hidden" name="riga_id" value="{{ riga.id }}">
+          <input type="hidden" name="nuovo_stato" value="completato">
+          <button type="submit" class="btn btn-sm btn-success">Evadi</button>
+        </form>
+        {% else %}
+          <span class="text-success">Evaso</span>
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="7" class="text-center">Nessuna riga da evadere</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<style>
+{% for riga in righe %}
+  .ordine-{{ riga.ordine.id }} {
+    background-color: hsl({{ riga.ordine.id|add:100|divisibleby:360 }}, 70%, 92%);
+  }
+{% endfor %}
+</style>
+
+{% endblock %}

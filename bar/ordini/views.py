@@ -1,11 +1,14 @@
+from django.urls import reverse
 from collections import defaultdict
 from django.utils.timezone import localdate
 from django.db.models.functions import TruncDate
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
 
 from bar.ordini.models import Ordine, OrdineRiga, STATUS_CHOICES, OPTION_CHOICES
 from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO
+
+from bar.core import Stato, Opzione, Categoria, Sottocategoria
 
 from datetime import datetime
 
@@ -14,30 +17,11 @@ from datetime import datetime
 def nuovo_ordine(request):
     prodotti = Prodotto.objects.all().order_by('categoria', 'sottocategoria', 'nome')
     if request.method == 'POST':
-        ordine = Ordine.objects.create(stato='in_attesa')  # stato iniziale
-        ordine.cliente = request.POST.get('nome_ordine', '')
-        ordine.save()
-
-        for prodotto in prodotti:
-            qty_list = request.POST.getlist(f'qty_{prodotto.id}[]')
-            opt_list = request.POST.getlist(f'opt_{prodotto.id}[]')
-
-            for qty_str, opt in zip(qty_list, opt_list):
-                try:
-                    qty = int(qty_str)
-                except ValueError:
-                    qty = 0
-
-                if qty > 0:
-                    OrdineRiga.objects.create(
-                        ordine=ordine,
-                        prodotto=prodotto,
-                        quantita=qty,
-                        stato='in_attesa',
-                        opzioni=opt
-                    )
-
+        ordine = Ordine()
+        ordine.modifica_da_post_request(request.POST, prodotti)
         return redirect('lista_ordini')
+
+
     prodotti_con_righe = []
     for prodotto in prodotti:
         righe = [{'quantita': 0, 'opzioni': ''}]  # riga vuota
@@ -53,7 +37,7 @@ def nuovo_ordine(request):
         'titolo_pagina': 'Nuovo Ordine',
         'bottone_submit': 'Inserisci Ordine',
         'quantità': {},  # vuoto all'inizio
-        'nome_ordine': '',
+        'nome_ordine': '', # vuoto all'inizio
         'prodotti': prodotti_con_righe,
         'opzioni': OPTION_CHOICES,
         'is_new': True
@@ -63,57 +47,9 @@ def nuovo_ordine(request):
 @login_required
 def lista_ordini(request):
     data_ordine = request.GET.get('data_ordine')
-    if not data_ordine:
-        data_ordine = localdate()    # restituisce la data odierna (timezone aware)
-    else:
-        data_ordine = datetime.strptime(data_ordine, '%d-%m-%Y')
-
-
-    date_distinte = Ordine.objects.annotate(data=TruncDate('creato')) \
-        .values_list('data', flat=True) \
-        .distinct()
-
-    # Data precedente a oggi
-    data_precedente = date_distinte.filter(data__lt=data_ordine).order_by('-data').first()
-    if data_precedente:
-        data_precedente = data_precedente.strftime('%d-%m-%Y')
-    else:
-        data_precedente = ""
-
-    # Data successiva a oggi
-    data_successiva = date_distinte.filter(data__gt=data_ordine).order_by('data').first()
-    if data_successiva:
-        data_successiva = data_successiva.strftime('%d-%m-%Y')
-    else:
-        data_successiva = ""
-
-
-
+    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
     ordini = Ordine.objects.filter(creato__date=data_ordine).order_by('creato')
-    totali = {}
-    for stato_ordine in STATUS_CHOICES:
-        totali[stato_ordine[0]] = {}
-        for categoria in CATEGORIE_PRODOTTO:
-            totali[stato_ordine[0]][categoria[0]] = {}
-            for sottocategoria in SOTTOCATEGORIE_PRODOTTO:
-                totali[stato_ordine[0]][categoria[0]][sottocategoria[0]] = {
-                    "quantità": 0,
-                    "totale": 0
-                }
-
-    for ordine in ordini:
-        stato = ordine.stato
-        for riga in ordine.items.all():
-            cat = riga.prodotto.categoria
-            sottocat = riga.prodotto.sottocategoria
-
-            qta = riga.quantita
-            prezzo = float(riga.prodotto.prezzo)
-            tot = qta * prezzo
-
-            totali[stato][cat][sottocat]["quantità"] += qta
-            totali[stato][cat][sottocat]["totale"] += tot
-
+    totali = Ordine.calcola_totali(ordini)
     context = { "ordini": ordini,
                 "totali_per_stato_cat_sottocat": totali,
                 "date": data_ordine.strftime('%d-%m-%Y'),
@@ -130,29 +66,7 @@ def modifica_ordine(request, pk):
     prodotti = Prodotto.objects.all().order_by('categoria', 'sottocategoria', 'nome')
 
     if request.method == 'POST':
-        ordine.cliente = request.POST.get('nome_ordine', '')
-        ordine.save()
-        ordine.items.all().delete()
-
-        for prodotto in prodotti:
-            qty_list = request.POST.getlist(f'qty_{prodotto.id}[]')
-            opt_list = request.POST.getlist(f'opt_{prodotto.id}[]')
-
-            for qty_str, opt in zip(qty_list, opt_list):
-                try:
-                    qty = int(qty_str)
-                except ValueError:
-                    qty = 0
-
-                if qty > 0:
-                    OrdineRiga.objects.create(
-                        ordine=ordine,
-                        prodotto=prodotto,
-                        quantita=qty,
-                        stato='in_attesa',
-                        opzioni=opt
-                    )
-
+        ordine.modifica_da_post_request(request.POST, prodotti)
         return redirect('lista_ordini')
 
     # Raggruppa righe per prodotto
@@ -176,7 +90,6 @@ def modifica_ordine(request, pk):
             'prezzo': prodotto.prezzo,
             'id': prodotto.id
         })
-
     context = {
         'titolo_pagina': f'Modifica Ordine #{ordine.id}',
         'bottone_submit': 'Salva Modifiche',
@@ -188,22 +101,98 @@ def modifica_ordine(request, pk):
     return render(request, 'ordini/ordine_form.html', context)
 
 
-
 @login_required
 def elimina_ordine(request, pk):
     ordine = get_object_or_404(Ordine, pk=pk)
-    if request.method == 'POST':
-        ordine.delete()
-        return redirect('lista_ordini')
+    ordine.delete()
+    return redirect('lista_ordini')
+
+@login_required
+def conferma_ordine(request, pk):
+    ordine = get_object_or_404(Ordine, pk=pk)
+    stato = get_object_or_404(Stato, chiave="in_preparazione")
+    ordine.cambia_stato_righe(stato)
+    return redirect('lista_ordini')
 
 
 @login_required
-def evasione(request, categoria):
-    righe = OrdineRiga.objects.select_related('ordine', 'prodotto') \
-        .filter(stato='in_attesa', prodotto__categoria=categoria) \
-        .order_by('ordine__creato')
+def evasione(request):
+    data_ordine = request.GET.get('data_ordine')
+    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
+    righe = OrdineRiga.objects.righe_da_evadere(data_ordine, stati_ordine=["in_preparazione"])
+    righe_raggruppate = OrdineRiga.objects.righe_raggruppate_per_categoria(righe)
 
     return render(request, 'ordini/evasione.html', {
-        'categoria': categoria,
-        'righe': righe,
+        'righe_raggruppate': righe_raggruppate,
+        'is_consegna': False,
+        'title': f"Ordini da evadere {data_ordine.strftime('%d-%m-%Y')}"
     })
+
+@login_required
+def consegne(request):
+    if request.method == 'POST':
+        riga_id = request.POST.get('riga_id')
+        nuovo_stato = request.POST.get('nuovo_stato')
+
+        riga = get_object_or_404(OrdineRiga, id=riga_id)
+        riga.stato = nuovo_stato
+        riga.save()
+
+
+        return redirect(request.path)  # ricarica la pagina
+
+    data_ordine = request.GET.get('data_ordine')
+    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
+    righe = OrdineRiga.objects.righe_da_evadere(data_ordine, stati_ordine=["in_preparazione", "non_trovato"])
+    righe_raggruppate = OrdineRiga.objects.righe_raggruppate_per_categoria(righe)
+
+    return render(request, 'ordini/evasione.html', {
+        'righe_raggruppate': righe_raggruppate,
+        'is_consegna': True,
+        'title': f"Ordini da consegnare {data_ordine.strftime('%d-%m-%Y')}",
+
+    })
+
+@login_required
+def set_stato_riga_ordine(request, pk="", stato=""):
+    riga = get_object_or_404(OrdineRiga, id=pk)
+    nuovo_stato = get_object_or_404(Stato, chiave=stato)
+    riga.stato = nuovo_stato
+    riga.save()
+    # Recupera il parametro data_ordine, se presente
+    data_ordine = request.GET.get('data_ordine')
+
+    # Costruisci l’URL con il parametro
+    url = reverse('consegne')
+    if data_ordine:
+        url += f"?data_ordine={data_ordine}"
+    print(url)
+    return redirect(url)
+
+
+
+def ottieni_data_ordine_precedente_successiva(data_ordine):
+    if not data_ordine:
+        data_ordine = localdate()    # restituisce la data odierna (timezone aware)
+    else:
+        data_ordine = datetime.strptime(data_ordine, '%d-%m-%Y')
+
+
+    date_distinte = Ordine.objects.annotate(data=TruncDate('creato')) \
+        .values_list('data', flat=True) \
+        .distinct()
+
+    # Data precedente a oggi
+    data_precedente = date_distinte.filter(data__lt=data_ordine).order_by('-data').first()
+    if data_precedente:
+        data_precedente = data_precedente.strftime('%d-%m-%Y')
+    else:
+        data_precedente = ""
+
+    # Data successiva a oggi
+    data_successiva = date_distinte.filter(data__gt=data_ordine).order_by('data').first()
+    if data_successiva:
+        data_successiva = data_successiva.strftime('%d-%m-%Y')
+    else:
+        data_successiva = ""
+    return data_ordine, data_precedente, data_successiva

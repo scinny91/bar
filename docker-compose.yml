@@ -1,5 +1,6 @@
 services:
   web:
+    container_name: web-app
     build: .
     command: gunicorn bar_app.wsgi:application --bind 0.0.0.0:8000
     ports:
@@ -11,9 +12,13 @@ services:
     depends_on:
       - setup
   setup:
-      build: .
-      command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput"
-      volumes:
-        - .:/app
-      environment:
-        - DJANGO_SETTINGS_MODULE=bar_site.settings
+    container_name: migrations_setup
+    build: .
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py collectstatic --noinput"
+    volumes:
+      - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=bar_site.settings

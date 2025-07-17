@@ -28,9 +28,8 @@
                             </div>
                             <div class="col-6">
                               <select name="opt_{{ prodotto.id }}[]" class="form-control">
-                                <option value="">--</option>
                                 {% for value, label in opzioni %}
-                                    <option value="{{ value }}" {% if riga.opzioni == value %}selected{% endif %}>{{ label }}</option>
+                                    <option value="{{ value }}" {% if riga.opzioni.chiave == value %} selected {% endif %}>{{ label }}</option>
                                 {% endfor %}
                               </select>
                             </div>
@@ -74,7 +73,6 @@
         </div>
         <div class="col-6">
           <select name="opt_${prodottoId}[]" class="form-control">
-            <option value="">--</option>
             {% for value, label in opzioni %}
               <option value="{{ value }}">{{ label }}</option>
             {% endfor %}

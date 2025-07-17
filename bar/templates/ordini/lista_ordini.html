@@ -5,12 +5,12 @@
 <a href="{% url 'nuovo_ordine' %}" class="btn btn-success mb-3"> + Nuovo Ordine</a>
  {% if data_precedente != "" %}
     <a href="{% url 'lista_ordini' %}?data_ordine={{ data_precedente }}" class="btn btn-outline-dark mb-3">
-    Ordini del {{ data_precedente }}
+    << Ordini del {{ data_precedente }}
     </a>
 {% endif %}
 {% if data_successiva != "" %}
     <a href="{% url 'lista_ordini' %}?data_ordine={{ data_successiva }}" class="btn btn-outline-dark mb-3">
-    Ordini del {{ data_successiva }}
+    Ordini del {{ data_successiva }} >>
     </a>
 {% endif %}
 
@@ -63,17 +63,25 @@
         <td>
           <ul class="mb-0 ps-3">
             {% for riga in p.items.all %}
-              <li>{{ riga.quantita }} - {{ riga.prodotto.nome }}</li>
+              <li>{{ riga }}</li>
             {% empty %}
               <li><em>Nessun prodotto</em></li>
             {% endfor %}
           </ul>
         </td>
 
-        <td><a href="{% url 'modifica_ordine' p.id %}" class="btn btn-sm btn-primary">Modifica️</a>
+        <td>
+            <a href="{% url 'modifica_ordine' p.id %}" class="btn btn-sm btn-primary" title="Modifica">
+                <i class="fa-solid fa-pen"></i>
+            </a>
+            <a href="{% url 'conferma_ordine' p.id %}" class="btn btn-sm btn-success" title="Conferma">
+                <i class="fa-solid fa-check"></i>
+            </a>
             <form action="{% url 'elimina_ordine' p.id %}" method="post" style="display:inline;">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');">Elimina</button>
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');" title="Elimina">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
             </form></td>
         </td>
 

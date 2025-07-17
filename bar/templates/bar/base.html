@@ -5,18 +5,48 @@
     <meta charset="UTF-8">
     <title>BarApp</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="p-4">
-    <div class="container">
-        <nav class="mb-4">
-            <a href="/cassa/" class="btn btn-primary">Cassa</a>
-            <a href="/cucina/" class="btn btn-success">Cucina</a>
-            <a href="/prodotti/" class="btn btn-success">Anagrafica</a>
-            <a href="/ordini/" class="btn btn-success">Ordini - Inserimento</a>
-            <a href="/logout/" class="btn btn-secondary float-end">Logout</a>
-        </nav>
-        {% block content %}{% endblock %}
-        {% block extra_js %}{% endblock %}
-    </div>
+  <div class="container-fluid">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark rounded mb-4 px-3">
+      <a class="navbar-brand fw-bold text-white" href="#">Menù</a>
+
+      <!-- Hamburger button -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNav" aria-controls="menuNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Collapsible menu -->
+      <div class="collapse navbar-collapse" id="menuNav">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 mt-2 mt-lg-0">
+          <li class="nav-item">
+            <a class="nav-link btn btn-success text-white me-2 mb-2 mb-lg-0" href="/ordini/inserimento/?data_ordine={{ request.GET.data_ordine }}">Inserimento ordini</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link btn btn-success text-white me-2 mb-2 mb-lg-0" href="/ordini/evasione/cucina/?data_ordine={{ request.GET.data_ordine }}">In preparazione</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link btn btn-success text-white me-2 mb-2 mb-lg-0" href="/ordini/consegne/cucina/?data_ordine={{ request.GET.data_ordine }}">Da consegnare</a>
+          </li>
+
+           <li class="nav-item">
+            <a class="nav-link btn btn-success text-white me-2 mb-2 mb-lg-0" href="/ordini/evasione/riepologo/?data_ordine={{ request.GET.data_ordine }}">Consegnati</a>
+          </li>
+        </ul>
+
+        <!-- Logout on the right -->
+        <a class="btn btn-outline-light mb-2 mb-lg-0" href="/logout/">Logout</a>
+      </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+    {% block extra_js %}{% endblock %}
+  </div>
+
+  <!-- Bootstrap JS (make sure it's included) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
