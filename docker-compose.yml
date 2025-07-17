@@ -17,7 +17,9 @@ services:
     command: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
-             python manage.py collectstatic --noinput"
+             python manage.py collectstatic --noinput
+             python manage.py shell < create_admin.py
+      "
     volumes:
       - .:/app
     environment:
