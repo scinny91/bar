@@ -9,7 +9,7 @@ load_dotenv(dotenv_path=BASE_DIR / '.env')
 
 SECRET_KEY = 'django-insecure-secret-key'
 DEBUG = True
-ALLOWED_HOSTS = ['bar-production-3382.up.railway.app', 'localhost', '127.0.0.1', 'https://bar-rb75.onrender.com/']
+ALLOWED_HOSTS = ['bar-production-3382.up.railway.app', 'localhost', '127.0.0.1', 'bar-rb75.onrender.com']
 CSRF_TRUSTED_ORIGINS = ['https://bar-production-3382.up.railway.app']
 
 INSTALLED_APPS = [
