@@ -1,64 +1,69 @@
 {% extends 'bar/base.html' %}
 {% load dict_extras %} {# serve per dict_get #}
 {% block content %}
-<div class="container mt-4">
-    <h2>{{ titolo_pagina }}</h2>
-    <form method="post" class="row g-3">
-        {% csrf_token %}
-        {% regroup prodotti by categoria as prodotti_per_categoria %}
-        {% for categoria_group in prodotti_per_categoria %}
-            <h4 class="mt-4">{{ categoria_group.grouper }}</h4>
+<div class="container-fluid mt-4">
+  <h2 class="text-center">{{ titolo_pagina }}</h2>
 
-            {% regroup categoria_group.list by sottocategoria as prodotti_per_sottocategoria %}
-            {% for sottocategoria_group in prodotti_per_sottocategoria %}
-                <h5 class="ms-3">{{ sottocategoria_group.grouper }}</h5>
+  <form method="post">
+    {% csrf_token %}
+    {% regroup prodotti by categoria as prodotti_per_categoria %}
 
-                {% for prodotto in sottocategoria_group.list %}
+    {% for categoria_group in prodotti_per_categoria %}
+      <h4 class="mt-4">{{ categoria_group.grouper }}</h4>
 
-                  <div class="col-12 d-flex align-items-center justify-content-between border-bottom py-2 ps-4">
-                    <div class="mb-2">
-                        <strong>{{ prodotto.nome }}</strong><br>
-                        <small class="text-muted">€{{ prodotto.prezzo }}</small>
-                    </div>
-                    <div id="prodotto-{{ prodotto.id }}-container" class="mb-10">
-                        {% for riga in prodotto.righe %}
-                        <div class="row gy-2 mb-2">
-                            <div class="col-4">
-                              <input value = "{{ riga.quantita }}" type="number" name="qty_{{ prodotto.id }}[]" min="0" class="form-control" placeholder="Quantità">
-                            </div>
-                            <div class="col-6">
-                              <select name="opt_{{ prodotto.id }}[]" class="form-control">
-                                {% for value, label in opzioni %}
-                                    <option value="{{ value }}" {% if riga.opzioni.chiave == value %} selected {% endif %}>{{ label }}</option>
-                                {% endfor %}
-                              </select>
-                            </div>
-                            <div class="col-2">
-                              <button type="button" class="btn btn-outline-secondary" onclick="aggiungiRiga({{ prodotto.id }})">+</button>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+      {% regroup categoria_group.list by sottocategoria as prodotti_per_sottocategoria %}
+      {% for sottocategoria_group in prodotti_per_sottocategoria %}
+        <h5 class="ms-2">{{ sottocategoria_group.grouper }}</h5>
+
+        {% for prodotto in sottocategoria_group.list %}
+          <div class="border rounded p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ prodotto.nome }}</strong><br>
+                <small class="text-muted">€{{ prodotto.prezzo }}</small>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="aggiungiRiga({{ prodotto.id }})">+</button>
+            </div>
+
+            <div id="prodotto-{{ prodotto.id }}-container" class="mt-2">
+              {% for riga in prodotto.righe %}
+              <div class="row gx-2 gy-2 align-items-center mb-2">
+                <div class="col-4">
+                  <input value="{{ riga.quantita }}" type="number" name="qty_{{ prodotto.id }}[]" min="0" class="form-control" placeholder="Qtà">
                 </div>
-                {% endfor %}
-            {% endfor %}
+                <div class="col-8">
+                  <select name="opt_{{ prodotto.id }}[]" class="form-select">
+                    {% for value, label in opzioni %}
+                      <option value="{{ value }}" {% if riga.opzioni.chiave == value %} selected {% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
         {% endfor %}
+      {% endfor %}
+    {% endfor %}
 
-        <div class="col-12 mt-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
-            <a href="{% url 'lista_ordini' %}" class="btn btn-secondary">Annulla</a>
+    <div class="mt-4 d-grid gap-2">
+      <input
+        type="text"
+        name="nome_ordine"
+        placeholder="Nome Ordine"
+        class="form-control"
+        value="{{ nome_ordine|default:'' }}"
+        required
+      />
 
-            <input type="text"
-                   name="nome_ordine"
-                   placeholder="Nome Ordine"
-                   class="form-control w-sm-50"
-                   value="{{ nome_ordine|default:'' }}"
-                   required>
-
-            <button type="submit" class="btn btn-primary">
-                {{ bottone_submit|default:"Salva Ordine" }}
-            </button>
-        </div>
-    </form>
+      <div class="d-flex justify-content-between gap-2">
+        <a href="{% url 'lista_ordini' %}" class="btn btn-secondary w-50">Annulla</a>
+        <button type="submit" class="btn btn-primary w-50">
+          {{ bottone_submit|default:"Salva Ordine" }}
+        </button>
+      </div>
+    </div>
+  </form>
 </div>
 <script>
     function aggiungiRiga(prodottoId) {
