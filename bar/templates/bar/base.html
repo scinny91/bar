@@ -48,5 +48,27 @@
 
   <!-- Bootstrap JS (make sure it's included) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggleButtons = document.querySelectorAll('.toggle-icon');
+
+    toggleButtons.forEach(button => {
+      const targetId = button.getAttribute('data-bs-target');
+      const target = document.querySelector(targetId);
+      const iconSpan = button.querySelector('.icon');
+
+      if (!target || !iconSpan) return;
+
+      target.addEventListener('show.bs.collapse', () => {
+        iconSpan.innerHTML = '<i class="fa-solid fa-caret-up"></i>'; // quando si espande
+      });
+
+      target.addEventListener('hide.bs.collapse', () => {
+        iconSpan.innerHTML = '<i class="fa-solid fa-caret-down"></i>'; // quando si collassa
+      });
+    });
+  });
+</script>
 </body>
 </html>
