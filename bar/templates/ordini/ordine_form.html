@@ -11,7 +11,7 @@
     {% for categoria_group in prodotti_per_categoria %}
       <div class="row align-items-center my-2">
         <div class="col-1 text-start">
-          <button class="btn btn-sm btn-outline-secondary toggle-icon px-3"
+          <button class="btn btn-sm btn-outline-secondary toggle-icon px-4"
                   type="button"
                   data-bs-toggle="collapse"
                   data-bs-target="#categoria-{{ forloop.counter }}"
@@ -39,7 +39,7 @@
               <h5 class="m-0">{{ sottocategoria_group.grouper }}</h5>
             </div>
             <div class="col-auto text-end">
-              <button class="btn btn-sm btn-outline-secondary toggle-icon px-3"
+              <button class="btn btn-sm btn-outline-secondary toggle-icon px-4"
                       type="button"
                       data-bs-toggle="collapse"
                       data-bs-target="#sottocategoria-{{ forloop.counter }}"
@@ -58,21 +58,33 @@
                     <strong>{{ prodotto.nome }}</strong><br>
                     <small class="text-muted">€{{ prodotto.prezzo }}</small>
                   </div>
-                  <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="aggiungiRiga({{ prodotto.id }})">+</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary px-4" onclick="aggiungiRiga({{ prodotto.id }})">+</button>
                 </div>
 
                 <div id="prodotto-{{ prodotto.id }}-container" class="mt-2">
                   {% for riga in prodotto.righe %}
                   <div class="row gx-2 gy-2 align-items-center mb-2">
-                    <div class="col-4">
-                      <input value="{{ riga.quantita }}" type="number" name="qty_{{ prodotto.id }}[]" min="0" class="form-control" placeholder="Qtà">
+                    <div class="col-3">
+                      <input
+                        value="{{ riga.quantita }}"
+                        type="number"
+                        name="qty_{{ prodotto.id }}[]"
+                        min="0"
+                        class="form-control form-control-lg"
+                        placeholder="Quantità"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        style="min-width: 80px; max-width: 130px;"
+                      >
                     </div>
                     <div class="col-8">
-                      <select name="opt_{{ prodotto.id }}[]" class="form-select">
+                      <select name="opt_{{ prodotto.id }}[]" class="form-select form-select-sm">
                         {% for value, label in opzioni %}
                           <option value="{{ value }}" {% if riga.opzioni.chiave == value %} selected {% endif %}>{{ label }}</option>
                         {% endfor %}
                       </select>
+                    </div>
+                    <div class="col-1">
                     </div>
                   </div>
                   {% endfor %}
@@ -111,18 +123,28 @@
       row.className = 'row gy-2 mb-2';
 
       row.innerHTML = `
-        <div class="col-4">
-          <input type="number" name="qty_${prodottoId}[]" min="0" class="form-control" placeholder="Quantità">
+        <div class="col-3">
+          <input
+            value="{{ riga.quantita }}"
+            type="number"
+            name="qty_${prodottoId}[]"
+            min="0"
+            class="form-control form-control-lg"
+            placeholder="Quantità"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            style="min-width: 80px; max-width: 130px;"
+          >
         </div>
-        <div class="col-6">
+        <div class="col-8">
           <select name="opt_${prodottoId}[]" class="form-control">
             {% for value, label in opzioni %}
               <option value="{{ value }}">{{ label }}</option>
             {% endfor %}
           </select>
         </div>
-        <div class="col-2">
-          <button type="button" class="btn btn-outline-danger px-3" onclick="this.closest('.row').remove()">−</button>
+        <div class="col-1">
+          <button type="button" class="btn btn-outline-danger px-4" onclick="this.closest('.row').remove()">−</button>
         </div>
       `;
 
