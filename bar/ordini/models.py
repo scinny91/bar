@@ -163,6 +163,9 @@ class OrdineRiga(models.Model):
         blank=True,
     )
 
+    @property
+    def opzioni_display(self):
+        return self.opzioni.valore if self.opzioni else "Nessuna Opzione"
 
     def totale(self):
         return self.quantita * self.prodotto.prezzo

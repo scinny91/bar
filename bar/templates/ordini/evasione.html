@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="mt-4">
   <h2>{{ title }}</h2>
 
 
@@ -48,7 +48,7 @@
                 <td>{{ riga_ordine.ordine.cliente }}</td>
                 <td>{{ riga_ordine.ordine.creato|date:"H:i" }}</td>
                 <td>{{ riga_ordine.prodotto.nome }}</td>
-                <td>{{ riga_ordine.opzioni }}</td>
+                <td>{{ riga_ordine.opzioni_display }}</td>
                 <td>{{ riga_ordine.quantita }}</td>
                 <td>{{ riga_ordine.stato }}</td>
                 {% if is_consegna %}
