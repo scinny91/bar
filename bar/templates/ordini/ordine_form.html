@@ -1,5 +1,6 @@
 {% extends 'bar/base.html' %}
-{% load dict_extras %} {# serve per dict_get #}
+{% load dict_extras %}
+
 {% block content %}
 <div class="container-fluid mt-4">
   <h2 class="text-center">{{ titolo_pagina }}</h2>
@@ -24,11 +25,7 @@
         <div class="col text-center">
           <h4 class="m-0">{{ categoria_group.grouper }}</h4>
         </div>
-
-        <div class="col-1 text-end">
-
-          <!-- spazio a sinistra per bilanciamento, opzionale -->
-        </div>
+        <div class="col-1 text-end"></div>
       </div>
 
       <div class="collapse show" id="categoria-{{ forloop.counter }}">
@@ -58,34 +55,44 @@
                     <strong>{{ prodotto.nome }}</strong><br>
                     <small class="text-muted">€{{ prodotto.prezzo }}</small>
                   </div>
-                  <button type="button" class="btn btn-sm btn-outline-secondary px-4" onclick="aggiungiRiga({{ prodotto.id }})">+</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary px-4" onclick="aggiungiRiga({{ prodotto.id }})">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
                 </div>
 
                 <div id="prodotto-{{ prodotto.id }}-container" class="mt-2">
                   {% for riga in prodotto.righe %}
                   <div class="row gx-2 gy-2 align-items-center mb-2">
-                    <div class="col-3">
-                      <input
-                        value="{{ riga.quantita }}"
-                        type="number"
-                        name="qty_{{ prodotto.id }}[]"
-                        min="0"
-                        class="form-control form-control-lg"
-                        placeholder="Quantità"
-                        inputmode="numeric"
-                        pattern="[0-9]*"
-                        style="min-width: 80px; max-width: 130px;"
-                      >
+                    <div class="col-4">
+                      <div class="input-group input-group-sm">
+                        <button class="btn btn-outline-secondary px-3" type="button" onclick="changeQty(this, -1)">
+                          <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <input
+                          value="{{ riga.quantita }}"
+                          type="number"
+                          name="qty_{{ prodotto.id }}[]"
+                          min="0"
+                          class="form-control text-center"
+                          placeholder="Qtà"
+                          inputmode="numeric"
+                          pattern="[0-9]*"
+                          style="max-width: 80px;"
+                        >
+                        <button class="btn btn-outline-secondary px-3" type="button" onclick="changeQty(this, +1)">
+                          <i class="fa-solid fa-plus"></i>
+                        </button>
+                      </div>
                     </div>
-                    <div class="col-8">
+
+                    <div class="col-7">
                       <select name="opt_{{ prodotto.id }}[]" class="form-select form-select-sm">
                         {% for value, label in opzioni %}
                           <option value="{{ value }}" {% if riga.opzioni.chiave == value %} selected {% endif %}>{{ label }}</option>
                         {% endfor %}
                       </select>
                     </div>
-                    <div class="col-1">
-                    </div>
+                    <div class="col-1"></div>
                   </div>
                   {% endfor %}
                 </div>
@@ -115,43 +122,61 @@
     </div>
   </form>
 </div>
+
+<style>
+.input-group-sm .btn {
+  min-width: 36px;
+  font-size: 1.2rem;
+  padding: 0.25rem 0.5rem;
+}
+</style>
+
 <script>
-    function aggiungiRiga(prodottoId) {
-      const container = document.getElementById(`prodotto-${prodottoId}-container`);
-      console.log('add row')
-      const row = document.createElement('div');
-      row.className = 'row gy-2 mb-2';
+function changeQty(btn, delta) {
+    const input = btn.parentElement.querySelector('input[type="number"]');
+    let current = parseInt(input.value) || 0;
+    let newVal = current + delta;
+    const minVal = parseInt(input.min) || 0;
+    input.value = (newVal >= minVal) ? newVal : minVal;
+  }
 
-      row.innerHTML = `
-        <div class="col-3">
-          <input
-            value="{{ riga.quantita }}"
-            type="number"
-            name="qty_${prodottoId}[]"
-            min="0"
-            class="form-control form-control-lg"
-            placeholder="Quantità"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            style="min-width: 80px; max-width: 130px;"
-          >
-        </div>
-        <div class="col-8">
-          <select name="opt_${prodottoId}[]" class="form-control">
-            {% for value, label in opzioni %}
-              <option value="{{ value }}">{{ label }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col-1">
-          <button type="button" class="btn btn-outline-danger px-4" onclick="this.closest('.row').remove()">−</button>
-        </div>
-      `;
-
-      container.appendChild(row);
-    }
-    </script>
-
-
+function aggiungiRiga(prodottoId) {
+  const container = document.getElementById(`prodotto-${prodottoId}-container`);
+  const row = document.createElement('div');
+  row.className = 'row gx-2 gy-2 align-items-center mb-2';
+  row.innerHTML = `
+    <div class="col-4">
+      <div class="input-group input-group-sm">
+        <button class="btn btn-outline-secondary px-3" type="button" onclick="changeQty(this, -1)">
+          <i class="fa-solid fa-minus"></i>
+        </button>
+        <input
+          value="0"
+          type="number"
+          name="qty_${prodottoId}[]"
+          min="0"
+          class="form-control text-center"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          style="max-width: 80px;"
+        >
+        <button class="btn btn-outline-secondary px-3" type="button" onclick="changeQty(this, +1)">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
+    </div>
+    <div class="col-7">
+      <select name="opt_${prodottoId}[]" class="form-select form-select-sm">
+        {% for value, label in opzioni %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-1">
+      <button type="button" class="btn btn-outline-danger px-4" onclick="this.closest('.row').remove()"><i class="fa-solid fa-minus"></i></button>
+    </div>
+  `;
+  container.appendChild(row);
+}
+</script>
 {% endblock %}
-
