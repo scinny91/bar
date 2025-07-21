@@ -86,7 +86,7 @@
                     </div>
 
                     <div class="col-7">
-                      <select name="opt_{{ prodotto.id }}[]" class="form-select form-select-sm">
+                      <select name="opt_{{ prodotto.id }}[]" class="form-select form-select-lg">
                         {% for value, label in opzioni %}
                           <option value="{{ value }}" {% if riga.opzioni.chiave == value %} selected {% endif %}>{{ label }}</option>
                         {% endfor %}
