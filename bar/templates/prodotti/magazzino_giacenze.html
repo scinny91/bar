@@ -1,0 +1,30 @@
+{% extends 'bar/base.html' %}
+
+{% block content %}
+<h2>Aggiorna Giacenze di Magazzino</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Quantità attuale</th>
+                <th>Nuova quantità</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for voce in magazzino %}
+            <tr>
+                <td>{{ voce.nome }}</td>
+                <td>{{ voce.quantita }}</td>
+                <td>
+                    <input type="number" name="qty_{{ voce.id }}" value="{{ voce.quantita }}" class="form-control" min="0">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">Salva modifiche</button>
+</form>
+{% endblock %}
