@@ -81,10 +81,12 @@ def riepilogo_ordini(request):
 
 @login_required
 def modifica_ordine(request, pk):
+
     ordine = get_object_or_404(Ordine, id=pk)
     prodotti = Prodotto.objects.all().order_by('categoria', 'sottocategoria', 'nome')
 
     if request.method == 'POST':
+        print(ordine.stato)
         ordine.modifica_da_post_request(request.POST, prodotti)
         return redirect('lista_ordini')
 

@@ -80,6 +80,16 @@ class Ordine(models.Model):
         """
         self.cliente = post_data.get('nome_ordine', '')
         self.save()
+
+        #R ipristina giacenza se era stata scalata (in_preparazione)
+        stato_in_preparazione = Stato.objects.get(chiave="in_preparazione")
+
+        for item in self.items.select_related('prodotto__magazzino'):
+            if item.stato == stato_in_preparazione and item.prodotto.magazzino:
+                magazzino = item.prodotto.magazzino
+                magazzino.quantita = models.F('quantita') + item.quantita
+                magazzino.save()
+
         self.items.all().delete()
 
         for prodotto in prodotti:
@@ -113,6 +123,16 @@ class Ordine(models.Model):
             else:
                 item.stato = new_stato
             item.save()
+
+            if new_stato.chiave == "in_preparazione" and item.prodotto.magazzino:
+                magazzino = item.prodotto.magazzino
+
+                if magazzino.quantita < item.quantita:
+                    raise ValueError(f"Scorte insufficienti per {magazzino.nome}")
+
+                magazzino.quantita = models.F('quantita') - item.quantita
+                magazzino.save()
+
 
     @staticmethod
     def calcola_totali(ordini):
