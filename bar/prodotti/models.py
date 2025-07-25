@@ -74,6 +74,7 @@ class ComponenteMagazzino(models.Model):
         base = self.quantita_utilizzata * quantita_prodotto
         maggiorazione = base * (self.percentuale_maggiorazione / 100)
         return base + maggiorazione
-
+    def rapr_per_anagrafica(self):
+        return f"{self.magazzino.nome}: {self.quantita_utilizzata} + {self.percentuale_maggiorazione}% "
     def __str__(self):
         return f"{self.prodotto.nome} consuma {self.quantita_utilizzata} + {self.percentuale_maggiorazione}% di {self.magazzino.nome}"

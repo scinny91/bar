@@ -2,6 +2,16 @@
 
 {% block content %}
   <h2>Elenco Prodotti</h2>
+  {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
   <div class="table-responsive">
     <table class="table table-striped">
       <thead>
@@ -10,6 +20,7 @@
           <th>Prezzo</th>
           <th>Categoria</th>
           <th>Sottocategoria</th>
+          <th>Distinta base</th>
           <th>Azioni</th>
         </tr>
       </thead>
@@ -30,6 +41,20 @@
                 {{ prodotto.sottocategoria.valore }}
               {% else %}
                 Senza sottocategoria
+              {% endif %}
+            </td>
+            <td>
+              {% if prodotto.componenti_magazzino.all %}
+                <ul class="mb-0 ps-3 small">
+                  {% for comp in prodotto.componentemagazzino_set.all %}
+                    <li>
+                      {{comp.rapr_per_anagrafica}}
+                      {% if comp.bloccante %} <strong>(bloccante)</strong>{% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <em>Nessuna</em>
               {% endif %}
             </td>
             <td>
