@@ -19,6 +19,7 @@ def nuovo_ordine(request):
     prodotti = Prodotto.objects.all().order_by('categoria', 'sottocategoria', 'nome')
     if request.method == 'POST':
         ordine = Ordine()
+        ordine.utente = request.user
         ordine.modifica_da_post_request(request.POST, prodotti)
         messages.success(request, f"Ordine #{ordine.id}-{ordine.cliente} inserito con successo.")
         return redirect('lista_ordini')
@@ -88,6 +89,7 @@ def modifica_ordine(request, pk):
     prodotti = Prodotto.objects.all().order_by('categoria', 'sottocategoria', 'nome')
 
     if request.method == 'POST':
+        ordine.utente = request.user
         ordine.modifica_da_post_request(request.POST, prodotti)
         messages.success(request, f"Ordine #{ordine.id}-{ordine.cliente} modificato con successo.")
 
@@ -134,6 +136,8 @@ def elimina_ordine(request, pk):
 @login_required
 def conferma_ordine(request, pk):
     ordine = get_object_or_404(Ordine, pk=pk)
+    ordine.utente = request.user
+    ordine.save()
     stato = get_object_or_404(Stato, chiave="in_preparazione")
     ordine.cambia_stato_righe(stato)
     messages.success(request, f"Ordine #{ordine.id}-{ordine.cliente} confermato con successo.")
@@ -161,6 +165,7 @@ def consegne(request):
 
         riga = get_object_or_404(OrdineRiga, id=riga_id)
         riga.stato = nuovo_stato
+        riga.utente = request.user
         riga.save()
 
         return redirect(request.path)  # ricarica la pagina
@@ -182,6 +187,7 @@ def set_stato_riga_ordine(request, pk="", stato=""):
     riga = get_object_or_404(OrdineRiga, id=pk)
     nuovo_stato = get_object_or_404(Stato, chiave=stato)
     riga.stato = nuovo_stato
+    riga.utente = request.user
     riga.save()
     # Recupera il parametro data_ordine, se presente
     data_ordine = request.GET.get('data_ordine')

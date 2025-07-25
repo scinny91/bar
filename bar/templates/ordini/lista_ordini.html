@@ -4,14 +4,14 @@
 
 {% if not is_riepilogo %}
     <h2> Elenco ordini in corso {{date}}</h2>
-    <a href="{% url 'nuovo_ordine' %}" class="btn btn-success mb-3"> + Nuovo Ordine</a>
+    <a href="{% url 'nuovo_ordine' %}" class="btn btn-success btn-lg mb-3"> + Nuovo Ordine</a>
      {% if data_precedente != "" %}
-        <a href="{% url 'lista_ordini' %}?data_ordine={{ data_precedente }}" class="btn btn-outline-dark mb-3">
+        <a href="{% url 'lista_ordini' %}?data_ordine={{ data_precedente }}" class="btn btn-outline-dark btn-lg mb-3">
         << Ordini del {{ data_precedente }}
         </a>
     {% endif %}
     {% if data_successiva != "" %}
-        <a href="{% url 'lista_ordini' %}?data_ordine={{ data_successiva }}" class="btn btn-outline-dark mb-3">
+        <a href="{% url 'lista_ordini' %}?data_ordine={{ data_successiva }}" class="btn btn-outline-dark btn-lg mb-3">
         Ordini del {{ data_successiva }} >>
         </a>
     {% endif %}
@@ -20,15 +20,71 @@
 {% endif %}
 
 {% if messages %}
-  <div class="container mt-2">
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
-      </div>
-    {% endfor %}
-  </div>
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show w-100 rounded-0 m-0" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
+    </div>
+  {% endfor %}
 {% endif %}
+
+<form method="post">{% csrf_token %}
+<table class="table">
+    <tr>
+        <th>ID</th>
+        <th>Utente</th>
+        <th>Stato</th>
+        <th>Cliente</th>
+        <th>Data</th>
+        <th>Totale</th>
+        <th>Righe</th>
+        {% if not is_riepilogo %}
+            <th>Azioni</th>
+        {% endif %}
+    </tr>
+    {% for p in ordini %}
+    <tr>
+        <td>{{ p.id }}</td>
+        <td>{{ p.utente }}</td>
+        <td>{{ p.stato }}</td>
+        <td>{{ p.cliente }}</td>
+        <td>{{ p.creato }}</td>
+        <td>{{ p.totale }}</td>
+        <td>
+          <ul class="mb-0 ps-3">
+            {% for riga in p.items.all %}
+              <li>{{ riga }}
+                  {% if is_riepilogo %}
+             [{{ riga.stato }}]
+        {% endif %} </li>
+            {% empty %}
+              <li><em>Nessun prodotto</em></li>
+            {% endfor %}
+          </ul>
+        </td>
+        {% if not is_riepilogo  %}
+            <td>
+              <div class="d-flex flex-column gap-2">
+                <a href="{% url 'modifica_ordine' p.id %}" class="btn btn-lg btn-primary w-100" title="Modifica">
+                  <i class="fa-solid fa-pen"></i>
+                </a>
+                <a href="{% url 'conferma_ordine' p.id %}" class="btn btn-lg btn-success w-100" title="Conferma">
+                  <i class="fa-solid fa-check"></i>
+                </a>
+                <form action="{% url 'elimina_ordine' p.id %}" method="post">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-lg w-100" onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');" title="Elimina">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+        {% endif %}
+
+    </tr>
+    {% endfor %}
+</table>
+
 
 <div class="row">
   {% for stato, categorie in totali_per_stato_cat_sottocat.items %}
@@ -58,57 +114,5 @@
   {% endfor %}
 </div>
 
-<form method="post">{% csrf_token %}
-<table class="table">
-    <tr>
-        <th>ID</th>
-        <th>Stato</th>
-        <th>Cliente</th>
-        <th>Data</th>
-        <th>Totale</th>
-        <th>Righe</th>
-        {% if not is_riepilogo %}
-            <th>Azioni</th>
-        {% endif %}
-    </tr>
-    {% for p in ordini %}
-    <tr>
-        <td>{{ p.id }}</td>
-        <td>{{ p.stato }}</td>
-        <td>{{ p.cliente }}</td>
-        <td>{{ p.creato }}</td>
-        <td>{{ p.totale }}</td>
-        <td>
-          <ul class="mb-0 ps-3">
-            {% for riga in p.items.all %}
-              <li>{{ riga }}
-                  {% if is_riepilogo %}
-             [{{ riga.stato }}]
-        {% endif %} </li>
-            {% empty %}
-              <li><em>Nessun prodotto</em></li>
-            {% endfor %}
-          </ul>
-        </td>
-        {% if not is_riepilogo  %}
-            <td>
-                <a href="{% url 'modifica_ordine' p.id %}" class="btn btn-sm btn-primary" title="Modifica">
-                    <i class="fa-solid fa-pen"></i>
-                </a>
-                <a href="{% url 'conferma_ordine' p.id %}" class="btn btn-sm btn-success" title="Conferma">
-                    <i class="fa-solid fa-check"></i>
-                </a>
-                <form action="{% url 'elimina_ordine' p.id %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');" title="Elimina">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </form></td>
-            </td>
-        {% endif %}
-
-    </tr>
-    {% endfor %}
-</table>
 </form>
 {% endblock %}

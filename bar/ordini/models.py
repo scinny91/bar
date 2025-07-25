@@ -1,4 +1,4 @@
-
+from django.contrib.auth.models import User
 from django.db import models
 from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO, ComponenteMagazzino
 from bar.core import Stato, Opzione
@@ -54,6 +54,8 @@ class Ordine(models.Model):
         blank=True,
     )
     cliente = models.CharField(max_length=40)
+    utente = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
 
     def totale(self):
         return sum(item.totale() for item in self.items.all())
@@ -171,6 +173,8 @@ class OrdineRiga(models.Model):
     ordine = models.ForeignKey(Ordine, on_delete=models.CASCADE, related_name='items')
     prodotto = models.ForeignKey(Prodotto, on_delete=models.CASCADE)
     quantita = models.PositiveIntegerField()
+    utente = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
 
     objects = OrdineRigaManager()
 
