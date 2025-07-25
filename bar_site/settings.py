@@ -85,3 +85,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+from django.contrib.messages import constants as message_constants
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'

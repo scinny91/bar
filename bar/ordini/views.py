@@ -4,6 +4,7 @@ from django.utils.timezone import localdate
 from django.db.models.functions import TruncDate
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 
 from bar.ordini.models import Ordine, OrdineRiga, STATUS_CHOICES, OPTION_CHOICES
 from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO
@@ -19,6 +20,7 @@ def nuovo_ordine(request):
     if request.method == 'POST':
         ordine = Ordine()
         ordine.modifica_da_post_request(request.POST, prodotti)
+        messages.success(request, f"Ordine #{ordine.id}-{ordine.cliente} inserito con successo.")
         return redirect('lista_ordini')
 
 
@@ -86,8 +88,9 @@ def modifica_ordine(request, pk):
     prodotti = Prodotto.objects.all().order_by('categoria', 'sottocategoria', 'nome')
 
     if request.method == 'POST':
-        print(ordine.stato)
         ordine.modifica_da_post_request(request.POST, prodotti)
+        messages.success(request, f"Ordine #{ordine.id}-{ordine.cliente} modificato con successo.")
+
         return redirect('lista_ordini')
 
     # Raggruppa righe per prodotto
@@ -133,6 +136,7 @@ def conferma_ordine(request, pk):
     ordine = get_object_or_404(Ordine, pk=pk)
     stato = get_object_or_404(Stato, chiave="in_preparazione")
     ordine.cambia_stato_righe(stato)
+    messages.success(request, f"Ordine #{ordine.id}-{ordine.cliente} confermato con successo.")
     return redirect('lista_ordini')
 
 
@@ -159,7 +163,6 @@ def consegne(request):
         riga.stato = nuovo_stato
         riga.save()
 
-
         return redirect(request.path)  # ricarica la pagina
 
     data_ordine = request.GET.get('data_ordine')
@@ -183,11 +186,12 @@ def set_stato_riga_ordine(request, pk="", stato=""):
     # Recupera il parametro data_ordine, se presente
     data_ordine = request.GET.get('data_ordine')
 
+    messages.success(request, f"Ordine #{riga.ordine.id}.{riga.id} passata in {riga.stato.valore}")
+
     # Costruisci l’URL con il parametro
     url = reverse('consegne')
     if data_ordine:
         url += f"?data_ordine={data_ordine}"
-    print(url)
     return redirect(url)
 
 

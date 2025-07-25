@@ -15,6 +15,16 @@
 {% block content %}
 <div class="mt-4">
   <h2>{{ title }}</h2>
+{% if messages %}
+  <div class="container mt-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
 
 
   {% if righe_raggruppate %}
@@ -44,7 +54,7 @@
                 {% endwith %}
               {% endif %}
               <tr class="{% if class_toggle|divisibleby:2 %}bg-color-even{% else %}bg-color-odd{% endif %}">
-                <td>{{ riga_ordine.ordine.id }}</td>
+                <td>{{ riga_ordine.ordine.id }}.{{riga_ordine.id}}</td>
                 <td>{{ riga_ordine.ordine.cliente }}</td>
                 <td>{{ riga_ordine.ordine.creato|date:"H:i" }}</td>
                 <td>{{ riga_ordine.prodotto.nome }}</td>
