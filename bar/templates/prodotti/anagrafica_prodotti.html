@@ -1,0 +1,53 @@
+{% extends "bar/base.html" %}
+
+{% block content %}
+  <h1>Gestione Prodotto e Distinta Base</h1>
+
+  <form method="get" action="">
+    <label for="prodotto">Seleziona prodotto:</label>
+    <select id="prodotto" onchange="location = '/anagrafica-prodotti/' + this.value + '/'">
+      {% for p in prodotti %}
+        <option value="{{ p.id }}" {% if p.id == prodotto.id %}selected{% endif %}>{{ p.nome }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <hr>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <h3>Dati prodotto</h3>
+    {{ prodotto_form.as_p }}
+
+    <h3>Distinta base</h3>
+    {{ formset.management_form }}
+    <div class="table-responsive">
+      <table class="table table-sm align-middle text-nowrap">
+        <thead class="table-light">
+          <tr>
+            <th>Magazzino</th>
+            <th>Quantità</th>
+            <th>% Magg.</th>
+            <th>Blocca</th>
+            <th>Elimina</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for form in formset %}
+            <tr>
+              {{ form.id }}  {# questo è fondamentale per Django #}
+              <td class="w-25">{{ form.magazzino }}</td>
+              <td class="w-15">{{ form.quantita_utilizzata }}</td>
+              <td class="w-15">{{ form.percentuale_maggiorazione }}</td>
+              <td class="w-10 text-center">{{ form.bloccante }}</td>
+              <td class="w-10 text-center">{{ form.DELETE }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salva tutto</button>
+  </form>
+{% endblock %}

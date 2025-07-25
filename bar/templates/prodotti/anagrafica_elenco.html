@@ -1,0 +1,43 @@
+{% extends 'bar/base.html' %}
+
+{% block content %}
+  <h2>Elenco Prodotti</h2>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Prezzo</th>
+          <th>Categoria</th>
+          <th>Sottocategoria</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prodotto in prodotti %}
+          <tr>
+            <td>{{ prodotto.nome }}</td>
+            <td>€{{ prodotto.prezzo }}</td>
+            <td>
+              {% if prodotto.categoria %}
+                {{ prodotto.categoria.valore }}
+              {% else %}
+                Senza categoria
+              {% endif %}
+            </td>
+            <td>
+              {% if prodotto.sottocategoria %}
+                {{ prodotto.sottocategoria.valore }}
+              {% else %}
+                Senza sottocategoria
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'modifica_prodotto' prodotto.pk %}" class="btn btn-primary btn-sm">Modifica</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

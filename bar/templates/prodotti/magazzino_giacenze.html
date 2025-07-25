@@ -11,6 +11,7 @@
                 <th>Nome</th>
                 <th>Quantità attuale</th>
                 <th>Nuova quantità</th>
+                <th>Soglia minima</th>
             </tr>
         </thead>
         <tbody>
@@ -21,8 +22,25 @@
                 <td>
                     <input type="number" name="qty_{{ voce.id }}" value="{{ voce.quantita }}" class="form-control" min="0">
                 </td>
+                <td>
+                    <input type="number" name="soglia_minima_{{ voce.id }}" value="{{ voce.soglia_minima }}" class="form-control" min="0">
+                </td>
             </tr>
             {% endfor %}
+
+            <!-- Nuova voce -->
+            <tr>
+                <td>
+                    <input type="text" name="new_nome" placeholder="Nuovo magazzino" class="form-control">
+                </td>
+                <td></td>
+                <td>
+                    <input type="number" name="new_quantita" class="form-control" min="0" placeholder="Quantità iniziale">
+                </td>
+                <td>
+                    <input type="number" name="new_soglia_minima" class="form-control" min="0" placeholder="Soglia minima">
+                </td>
+            </tr>
         </tbody>
     </table>
     <button type="submit" class="btn btn-primary">Salva modifiche</button>

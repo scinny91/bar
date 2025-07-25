@@ -1,7 +1,7 @@
 from django.contrib import admin
 from import_export import resources
 from import_export.admin import ExportMixin, ImportMixin, ImportExportModelAdmin
-from bar.prodotti.models import Prodotto, Magazzino
+from bar.prodotti.models import Prodotto, Magazzino, ComponenteMagazzino
 from bar.ordini.models import Ordine, OrdineRiga
 from bar.core import Stato, Opzione, Categoria, Sottocategoria
 
@@ -35,6 +35,10 @@ class ProdottoAdmin(BaseImportExportAdmin):
 
 @admin.register(Magazzino)
 class MagazzinoAdmin(BaseImportExportAdmin):
+    pass
+
+@admin.register(ComponenteMagazzino)
+class ComponenteMagazzinoAdmin(BaseImportExportAdmin):
     pass
 
 @admin.register(Stato)

@@ -1,6 +1,6 @@
 
 from django.db import models
-from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO
+from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO, ComponenteMagazzino
 from bar.core import Stato, Opzione
 from collections import defaultdict
 
@@ -81,14 +81,14 @@ class Ordine(models.Model):
         self.cliente = post_data.get('nome_ordine', '')
         self.save()
 
-        #R ipristina giacenza se era stata scalata (in_preparazione)
-        stato_in_preparazione = Stato.objects.get(chiave="in_preparazione")
-
-        for item in self.items.select_related('prodotto__magazzino'):
-            if item.stato == stato_in_preparazione and item.prodotto.magazzino:
-                magazzino = item.prodotto.magazzino
-                magazzino.quantita = models.F('quantita') + item.quantita
-                magazzino.save()
+        #Ripristina giacenza se era stata scalata (in_preparazione o completato)
+        for item in self.items.select_related('prodotto'):
+            if item.stato.chiave in ("completato", "in_preparazione"):
+                componenti = ComponenteMagazzino.objects.filter(prodotto=item.prodotto)
+                for componente in componenti.select_related('magazzino'):
+                    da_ripristinare = componente.quantita_totale_per(item.quantita)
+                    componente.magazzino.quantita = models.F('quantita') + da_ripristinare
+                    componente.magazzino.save()
 
         self.items.all().delete()
 
@@ -117,21 +117,25 @@ class Ordine(models.Model):
     def cambia_stato_righe(self, new_stato):
         stato_completato = Stato.objects.get(chiave="completato")
         for item in self.items.all():
+            # Se stiamo passando in "in_preparazione", scala le giacenze (se necessario)
+            if new_stato.chiave == "in_preparazione":
+                if item.prodotto.componenti_magazzino.exists() and item.stato.chiave not in ("in_preparazione", "completato"):
+                    componenti = ComponenteMagazzino.objects.filter(prodotto=item.prodotto).select_related('magazzino')
+                    for componente in componenti:
+                        da_scalare = componente.quantita_totale_per(item.quantita)
+
+                        if componente.magazzino.quantita < da_scalare and componente.bloccante:
+                            raise ValueError(f"Scorte insufficienti per {componente.magazzino.nome}")
+
+                        componente.magazzino.quantita = models.F('quantita') - da_scalare
+                        componente.magazzino.save()
+
             if new_stato.chiave == "in_preparazione" and item.prodotto.categoria.chiave != "cucina":
                 # il bar va direttamente in completato
                 item.stato = stato_completato
             else:
                 item.stato = new_stato
             item.save()
-
-            if new_stato.chiave == "in_preparazione" and item.prodotto.magazzino:
-                magazzino = item.prodotto.magazzino
-
-                if magazzino.quantita < item.quantita:
-                    raise ValueError(f"Scorte insufficienti per {magazzino.nome}")
-
-                magazzino.quantita = models.F('quantita') - item.quantita
-                magazzino.save()
 
 
     @staticmethod
