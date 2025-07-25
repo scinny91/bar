@@ -1,7 +1,17 @@
 {% extends "bar/base.html" %}
 
 {% block content %}
-  <h1>Gestione Prodotto e Distinta Base</h1>
+  <h1>Gestione Prodotto e distinta base</h1>
+  {% if messages %}
+      <div class="container mt-3">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
   <form method="get" action="">
     <label for="prodotto">Seleziona prodotto:</label>
@@ -47,7 +57,9 @@
         </tbody>
       </table>
     </div>
-
-    <button type="submit" class="btn btn-primary">Salva tutto</button>
+    <div class="d-flex gap-2 mt-3">
+      <button type="submit" class="btn btn-primary">Salva tutto</button>
+      <a href="/anagrafica-prodotti/" class="btn btn-secondary">Torna all'anagrafica</a>
+    </div>
   </form>
 {% endblock %}

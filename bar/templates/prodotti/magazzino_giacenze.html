@@ -16,16 +16,18 @@
         </thead>
         <tbody>
             {% for voce in magazzino %}
-            <tr>
+              <tr class="{% if voce.quantita < voce.soglia_minima %}table-danger
+                         {% elif voce.quantita < voce.soglia_minima|add:voce.soglia_minima %}table-warning
+                         {% endif %}">
                 <td>{{ voce.nome }}</td>
                 <td>{{ voce.quantita }}</td>
                 <td>
-                    <input type="number" name="qty_{{ voce.id }}" value="{{ voce.quantita }}" class="form-control" min="0">
+                  <input type="number" name="qty_{{ voce.id }}" value="{{ voce.quantita }}" class="form-control" min="0">
                 </td>
                 <td>
-                    <input type="number" name="soglia_minima_{{ voce.id }}" value="{{ voce.soglia_minima }}" class="form-control" min="0">
+                  <input type="number" name="soglia_minima_{{ voce.id }}" value="{{ voce.soglia_minima }}" class="form-control" min="0">
                 </td>
-            </tr>
+              </tr>
             {% endfor %}
 
             <!-- Nuova voce -->

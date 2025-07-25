@@ -29,7 +29,7 @@ class MagazzinoManager(models.Manager):
 class Magazzino(models.Model):
     nome = models.CharField(max_length=100, unique=True)
     quantita = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    soglia_minima = models.PositiveIntegerField(default=0)
+    soglia_minima = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
 
     objects = MagazzinoManager()
 

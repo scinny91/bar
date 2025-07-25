@@ -20,6 +20,10 @@ def modifica_prodotto(request, prodotto_id=None):
         if prodotto_form.is_valid() and formset.is_valid():
             prodotto_form.save()
             formset.save()
+            messages.success(request, f"{prodotto.nome} modificato con successo")
+        else:
+            messages.error(request, f"{prodotto.nome} non modificato")
+
         return redirect('modifica_prodotto', prodotto_id=prodotto.id)
     else:
         prodotto_form = ProdottoForm(instance=prodotto)
@@ -37,19 +41,21 @@ def aggiorna_giacenze(request):
     magazzino = Magazzino.objects.all().order_by('nome')
 
     if request.method == 'POST':
-        modifiche = 0
+        modifiche = False
         for voce in magazzino:
             nuova_quantita = request.POST.get(f"qty_{voce.id}")
             soglia_minima = request.POST.get(f"soglia_minima_{voce.id}")
 
-            if nuova_quantita is not None:
-                try:
-                    # usa il manager per aggiornare
-                    obj, creato = Magazzino.objects.aggiorna_o_crea(voce.nome, nuova_quantita, soglia_minima)
-                    if not creato and obj.quantita != voce.quantita:
-                        modifiche += 1
-                except ValueError as e:
-                    messages.error(request, f"{voce.nome}: {e}")
+
+            try:
+                if nuova_quantita != voce.quantita or soglia_minima != soglia_minima:
+                    modifiche = True
+                    voce.quantita = nuova_quantita
+                    voce.soglia_minima = soglia_minima
+                    voce.save()
+                    messages.success(request, f"{voce.nome} modificato con successo")
+            except ValueError as e:
+                messages.error(request, f"{voce.nome}: {e}")
 
             # gestisce eventuale nuova riga
             nuovo_nome = request.POST.get("new_nome", "").strip()
@@ -57,20 +63,14 @@ def aggiorna_giacenze(request):
             soglia_minima = request.POST.get("new_soglia_minima", "").strip()
 
             if nuovo_nome and nuova_qta:
-                try:
-                    obj, creato = Magazzino.objects.aggiorna_o_crea(nuovo_nome, nuova_qta, soglia_minima)
-                    if creato:
-                        modifiche += 1
-                        messages.success(request, f"Aggiunto nuovo articolo: {obj.nome}")
-                    elif obj.quantita != int(nuova_qta):
-                        modifiche += 1
-                        messages.success(request, f"Giacenza aggiornata per {obj.nome}")
-                except ValueError as e:
-                    messages.error(request, f"{nuovo_nome}: {e}")
+                modifiche = True
+                nuovo_mag = Magazzino()
+                nuovo_mag.quantita = nuova_quantita
+                nuovo_mag.soglia_minima = soglia_minima
+                nuovo_mag.save()
+                messages.success(request, f"{voce.nome} creato con successo")
 
-        if modifiche:
-            messages.success(request, f"Giacenze aggiornate per {modifiche} articoli.")
-        else:
+        if not modifiche:
             messages.info(request, "Nessuna modifica effettuata.")
 
         return redirect('aggiorna_giacenze')
