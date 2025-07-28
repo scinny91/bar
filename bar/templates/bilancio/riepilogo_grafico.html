@@ -76,10 +76,13 @@
   </table>
 
   {% if chart_ricavi %}
+    <h2>Grafico dei ricavi</h2>
+
     <canvas id="myChart" style="max-width: 800px; max-height: 800px;"></canvas></canvas>
 
   {% endif %}
-  {% if chart_ricavi %}
+  {% if chart_costi %}
+    <h2>Grafico dei costi</h2>
     <canvas id="myChart2" style="max-width: 800px; max-height: 800px;"></canvas>
   {% else %}
     <p>Compila il form e clicca "Visualizza" per vedere i dati.</p>

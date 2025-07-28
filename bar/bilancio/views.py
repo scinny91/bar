@@ -61,17 +61,17 @@ def riepilogo_bilancio(request):
 
 
 
-        values = [float(r["totale"]) for r in ricavi]  # Per Chart.js
+        values = [float(r["totale"]  or 0) for r in ricavi]  # Per Chart.js
         chart_data_ricavi = {"labels": labels, "values": values}
 
-        values = [float(r["totale"]) for r in costi]  # Per Chart.js
+        values = [float(r["totale"] or 0) for r in costi]  # Per Chart.js
         chart_data_costi = {"labels": labels, "values": values}
 
         redditivita = []
 
         for label in labels:
             attivo = next((r["totale"] for r in ricavi if (r[chiave] or "N/D") == label), Decimal('0'))
-            passivo = next((r["totale"] for r in costi if (r[chiave] or "N/D") == label), Decimal('0'))
+            passivo = next((r["totale"] for r in costi if (r[chiave] or "N/D") == label), Decimal('0')) or 0
             quant = next((q["totale"] for q in quantita if (q[chiave] or "N/D") == label), 0)
 
             redditivita.append({
