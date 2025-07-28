@@ -32,12 +32,53 @@
         <option value="prodotto" {% if aggregation == "prodotto" %}selected{% endif %}>Prodotto</option>
       </select>
     </div>
+    <div class="mb-3">
+      <label for="chart_type" class="form-label">Tipo di grafico</label>
+      <select class="form-select" id="chart_type" name="chart_type">
+        <option value="bar" {% if chart_type == 'bar' %}selected{% endif %}>Barre</option>
+        <option value="pie" {% if chart_type == 'pie' %}selected{% endif %}>Torta</option>
+        <option value="doughnut" {% if chart_type == 'doughnut' %}selected{% endif %}>Ciambella</option>
+        <option value="polarArea" {% if chart_type == 'polarArea' %}selected{% endif %}>Area polare</option>
+      </select>
+    </div>
 
     <button type="submit" class="btn btn-primary">Visualizza</button>
   </form>
 
-  {% if chart_data %}
+  <h4 class="mt-5">Tabella dettagliata</h4>
+  <table class="table table-bordered table-sm mt-3">
+    <thead>
+      <tr>
+        <th>Prodotto</th>
+        <th>Totale venduto (€)</th>
+        <th>Incidenza sull'attivo (%)</th>
+        <th>Costi (€)</th>
+        <th>Incidenza sul passivo (%)</th>
+        <th>Quantità venduta</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for chiave, valore in redditivita.items %}
+        <tr>
+          <td>{{ chiave }}</td>
+          <td>{{ valore.attivo|floatformat:2 }}</td>
+          <td>{{ valore.redditivita_attiva|floatformat:2 }}</td>
+          <td>{{ valore.passivo|floatformat:2 }}</td>
+          <td>{{ valore.redditivita_passiva|floatformat:2 }}</td>
+          <td>{{ valore.quantita_totale|floatformat:2 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">Nessun dato disponibile.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if chart_ricavi %}
     <canvas id="myChart" style="max-width: 800px; max-height: 800px;"></canvas></canvas>
+
+  {% endif %}
+  {% if chart_ricavi %}
+    <canvas id="myChart2" style="max-width: 800px; max-height: 800px;"></canvas>
   {% else %}
     <p>Compila il form e clicca "Visualizza" per vedere i dati.</p>
   {% endif %}
@@ -55,12 +96,9 @@
   });
 </script>
 
-{% if chart_data %}
+{% if chart_ricavi %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  const data = {{ chart_data|safe }};
-  const ctx = document.getElementById('myChart').getContext('2d');
-
   function generateColors(n) {
     const colors = [];
     for (let i = 0; i < n; i++) {
@@ -72,35 +110,45 @@
     return colors;
   }
 
-  const backgroundColors = generateColors(data.labels.length);
+  function drawChart(canvasId, data, type = 'bar', label = 'Totale (€)') {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    const backgroundColors = generateColors(data.labels.length);
+    const borderColors = backgroundColors.map(c => c.replace('0.6', '1'));
 
-
-  new Chart(ctx, {
-    type: 'pie', // o 'pie', 'doughnut', ecc.
-    data: {
-      labels: data.labels,
-      datasets: [{
-        label: 'Totale venduto (€)',
-        data: data.values,
-        backgroundColor: backgroundColors.slice(0, data.labels.length),
-        borderColor: backgroundColors.slice(0, data.labels.length).map(c => c.replace('0.6', '1')),
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          display: (['pie', 'doughnut', 'polarArea'].includes('bar') ? true : false)
-        }
+    new Chart(ctx, {
+      type: type,
+      data: {
+        labels: data.labels,
+        datasets: [{
+          label: label,
+          data: data.values,
+          backgroundColor: backgroundColors,
+          borderColor: borderColors,
+          borderWidth: 1
+        }]
       },
-      scales: {
-        y: {
-          beginAtZero: true
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: ['pie', 'doughnut', 'polarArea'].includes(type)
+          }
+        },
+        scales: ['pie', 'doughnut', 'polarArea'].includes(type) ? {} : {
+          y: { beginAtZero: true }
         }
       }
-    }
-  });
+    });
+  }
+
+  const data1 = {{ chart_ricavi|safe }};
+  const data2 = {{ chart_costi|safe }};
+  const chartType = "{{ chart_type }}";
+
+
+  drawChart('myChart', data1, chartType, 'Totale venduto per categoria');
+  drawChart('myChart2', data2, chartType, 'Distribuzione per prodotto');
 </script>
 {% endif %}
 {% endblock %}
