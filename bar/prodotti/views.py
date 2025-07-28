@@ -45,13 +45,15 @@ def aggiorna_giacenze(request):
         for voce in magazzino:
             nuova_quantita = request.POST.get(f"qty_{voce.id}")
             soglia_minima = request.POST.get(f"soglia_minima_{voce.id}")
+            costo_acquisto = request.POST.get(f"costo_acquisto_{voce.id}")
 
 
             try:
-                if nuova_quantita != voce.quantita or soglia_minima != soglia_minima:
+                if nuova_quantita != voce.quantita or soglia_minima != voce.soglia_minima or costo_acquisto != voce.costo_acquisto:
                     modifiche = True
                     voce.quantita = nuova_quantita
                     voce.soglia_minima = soglia_minima
+                    voce.costo_acquisto = costo_acquisto
                     voce.save()
                     messages.success(request, f"{voce.nome} modificato con successo")
             except ValueError as e:
@@ -60,6 +62,7 @@ def aggiorna_giacenze(request):
             # gestisce eventuale nuova riga
             nuovo_nome = request.POST.get("new_nome", "").strip()
             nuova_qta = request.POST.get("new_quantita", "").strip()
+            costo_acquisto = request.POST.get("new_costo_acquisto", "").strip()
             soglia_minima = request.POST.get("new_soglia_minima", "").strip()
 
             if nuovo_nome and nuova_qta:
@@ -67,6 +70,7 @@ def aggiorna_giacenze(request):
                 nuovo_mag = Magazzino()
                 nuovo_mag.quantita = nuova_quantita
                 nuovo_mag.soglia_minima = soglia_minima
+                nuovo_mag.costo_acquisto = costo_acquisto
                 nuovo_mag.save()
                 messages.success(request, f"{voce.nome} creato con successo")
 

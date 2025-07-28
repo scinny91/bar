@@ -12,6 +12,7 @@
                 <th>Quantità attuale</th>
                 <th>Nuova quantità</th>
                 <th>Soglia minima</th>
+                <th>Costo acquisto unitario</th>
             </tr>
         </thead>
         <tbody>
@@ -27,6 +28,9 @@
                 <td>
                   <input type="number" name="soglia_minima_{{ voce.id }}" value="{{ voce.soglia_minima }}" class="form-control" min="0">
                 </td>
+                <td>
+                  <input type="number" name="costo_acquisto_{{ voce.id }}" value="{{ voce.costo_acquisto }}" class="form-control" min="0" step="0.01">
+                </td>
               </tr>
             {% endfor %}
 
@@ -38,9 +42,11 @@
                 <td></td>
                 <td>
                     <input type="number" name="new_quantita" class="form-control" min="0" placeholder="Quantità iniziale" step="0.01">
-                </td>
                 <td>
                     <input type="number" name="new_soglia_minima" class="form-control" min="0" placeholder="Soglia minima">
+                </td>
+                <td>
+                    <input type="number" name="new_costo_acquisto" class="form-control" min="0" placeholder="Costo acquisto" step="0.01">
                 </td>
             </tr>
         </tbody>

@@ -10,14 +10,15 @@ class prodottoError(Exception):
     pass
 
 class MagazzinoManager(models.Manager):
-    def aggiorna_o_crea(self, nome, quantita, soglia_minima=0):
+    def aggiorna_o_crea(self, nome, quantita, soglia_minima=0, costo_acquisto=0):
         nome = nome.strip()
         if not nome:
             raise prodottoError("Il nome del magazzino non può essere vuoto.")
 
         try:
-            quantita = int(quantita)
+            quantita = float(quantita)
             soglia_minima = int(soglia_minima)
+            costo_acquisto = float(costo_acquisto)
         except (TypeError, ValueError):
             raise prodottoError("Quantità non valida.")
 
@@ -25,6 +26,7 @@ class MagazzinoManager(models.Manager):
 
         obj.quantita = quantita
         obj.soglia_minima = soglia_minima
+        obj.costo_acquisto = costo_acquisto
         obj.save()
 
         return obj, creato
@@ -32,6 +34,7 @@ class MagazzinoManager(models.Manager):
 class Magazzino(models.Model):
     nome = models.CharField(max_length=100, unique=True)
     quantita = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    costo_acquisto = models.DecimalField(max_digits=6, decimal_places=2, default=0,verbose_name="Costo di acquisto")
     soglia_minima = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
 
     objects = MagazzinoManager()
@@ -42,7 +45,7 @@ class Magazzino(models.Model):
 class Prodotto(models.Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=100)
-    prezzo = models.DecimalField(max_digits=6, decimal_places=2)
+    prezzo = models.DecimalField(max_digits=6, decimal_places=2) #prezzo retail
     categoria = models.ForeignKey(
         'Categoria',
         on_delete=models.SET_NULL,  # se la sottocategoria viene cancellata, metto null
