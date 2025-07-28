@@ -7,4 +7,5 @@ urlpatterns = [
     path("logout/", views.user_logout, name="logout"),
     path('', include('bar.prodotti.urls')),
     path('', include('bar.ordini.urls')),
+    path('', include('bar.bilancio.urls')),
 ]

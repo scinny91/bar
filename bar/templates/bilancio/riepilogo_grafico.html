@@ -1,0 +1,106 @@
+{% extends 'bar/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Esporta e visualizza statistiche</h2>
+
+  <form method="get" class="mb-4">
+    <div class="mb-3">
+      <label class="form-label">Date disponibili</label>
+      <div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="select_all">
+          <label class="form-check-label" for="select_all"><strong>Seleziona tutte</strong></label>
+        </div>
+        {% for date in available_dates %}
+          <div class="form-check">
+            <input class="form-check-input date-checkbox" type="checkbox" name="dates" id="date_{{ forloop.counter }}" value="{{ date }}"
+                   {% if date in selected_dates %}checked{% endif %}>
+            <label class="form-check-label" for="date_{{ forloop.counter }}">{{ date }}</label>
+          </div>
+        {% empty %}
+          <p>Nessuna data disponibile.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="aggregation" class="form-label">Aggregazione</label>
+      <select class="form-select" id="aggregation" name="aggregation">
+        <option value="categoria" {% if aggregation == "categoria" %}selected{% endif %}>Categoria</option>
+        <option value="sottocategoria" {% if aggregation == "sottocategoria" %}selected{% endif %}>Sottocategoria</option>
+        <option value="prodotto" {% if aggregation == "prodotto" %}selected{% endif %}>Prodotto</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Visualizza</button>
+  </form>
+
+  {% if chart_data %}
+    <canvas id="myChart" style="max-width: 800px; max-height: 800px;"></canvas></canvas>
+  {% else %}
+    <p>Compila il form e clicca "Visualizza" per vedere i dati.</p>
+  {% endif %}
+</div>
+
+<script>
+  // Seleziona/Deseleziona tutte le date
+  document.addEventListener('DOMContentLoaded', function () {
+    const selectAll = document.getElementById('select_all');
+    const checkboxes = document.querySelectorAll('.date-checkbox');
+
+    selectAll.addEventListener('change', function () {
+      checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    });
+  });
+</script>
+
+{% if chart_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const data = {{ chart_data|safe }};
+  const ctx = document.getElementById('myChart').getContext('2d');
+
+  function generateColors(n) {
+    const colors = [];
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(Math.random() * 200);
+      const g = Math.floor(Math.random() * 200);
+      const b = Math.floor(Math.random() * 200);
+      colors.push(`rgba(${r}, ${g}, ${b}, 0.6)`);
+    }
+    return colors;
+  }
+
+  const backgroundColors = generateColors(data.labels.length);
+
+
+  new Chart(ctx, {
+    type: 'pie', // o 'pie', 'doughnut', ecc.
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: 'Totale venduto (€)',
+        data: data.values,
+        backgroundColor: backgroundColors.slice(0, data.labels.length),
+        borderColor: backgroundColors.slice(0, data.labels.length).map(c => c.replace('0.6', '1')),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: (['pie', 'doughnut', 'polarArea'].includes('bar') ? true : false)
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}
