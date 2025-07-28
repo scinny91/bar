@@ -140,7 +140,7 @@ def elimina_ordine(request, pk):
     ordine = get_object_or_404(Ordine, pk=pk)
     # Ripristina giacenza se era stata scalata (in_preparazione o completato)
     for item in ordine.items.select_related('prodotto', 'stato'):
-        print(item)
+
         if item.stato.chiave in ("completato", "in_preparazione"):
             componenti = ComponenteMagazzino.objects.filter(prodotto=item.prodotto).select_related('magazzino')
             for componente in componenti:

@@ -32,9 +32,9 @@
     <tr>
         <th>ID</th>
         <th>Utente</th>
-        <th>Stato</th>
+        <th>Stato Ordine</th>
         <th>Cliente</th>
-        <th>Data</th>
+        <th>Orario</th>
         <th>Totale</th>
         <th>Righe</th>
         {% if not is_riepilogo %}
@@ -52,8 +52,9 @@
         <td>
           <ul class="mb-0 ps-3">
             {% for riga in p.items.all %}
-              <li>{{ riga }}
-                {% if is_riepilogo %}[{{ riga.stato }}]{% endif %}
+              <li>
+                {% if not is_riepilogo %} {{ riga }}[{{ riga.stato }}] {% endif %}
+                {% if is_riepilogo %} {{ riga.stampa_dettagli }} {% endif %}
               </li>
             {% empty %}
               <li><em>Nessun prodotto</em></li>

@@ -177,6 +177,7 @@ class OrdineRiga(models.Model):
     utente = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
 
+
     objects = OrdineRigaManager()
 
     stato = models.ForeignKey(
@@ -203,5 +204,10 @@ class OrdineRiga(models.Model):
         if self.opzioni:
             return f"{self.quantita}x {self.prodotto.nome} + {self.opzioni.valore}"
         return f"{self.quantita}x {self.prodotto.nome}"
+
+    def stampa_dettagli(self):
+        if self.stato.chiave in ("completato", "non_trovato"):
+            return f"{self.__str__()} [{self.stato.valore} da: {self.utente}]"
+        return f"{self.__str__()}"
 
 

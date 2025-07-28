@@ -83,7 +83,6 @@ def riepilogo_bilancio(request):
                 "quantita_totale": quant,
                 "utile": (attivo - passivo),
             })
-        print(redditivita)
 
 
 
