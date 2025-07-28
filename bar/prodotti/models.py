@@ -6,17 +6,20 @@ from bar.core import Categoria, Sottocategoria
 CATEGORIE_PRODOTTO = Categoria.get_choices(with_void=False)
 SOTTOCATEGORIE_PRODOTTO = Sottocategoria.get_choices(with_void=False)
 
+class prodottoError(Exception):
+    pass
+
 class MagazzinoManager(models.Manager):
     def aggiorna_o_crea(self, nome, quantita, soglia_minima=0):
         nome = nome.strip()
         if not nome:
-            raise ValueError("Il nome del magazzino non può essere vuoto.")
+            raise prodottoError("Il nome del magazzino non può essere vuoto.")
 
         try:
             quantita = int(quantita)
             soglia_minima = int(soglia_minima)
         except (TypeError, ValueError):
-            raise ValueError("Quantità non valida.")
+            raise prodottoError("Quantità non valida.")
 
         obj, creato = self.get_or_create(nome__iexact=nome, defaults={'nome': nome})
 

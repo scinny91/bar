@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO, ComponenteMagazzino
+from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO, ComponenteMagazzino, prodottoError
 from bar.core import Stato, Opzione
 from collections import defaultdict
 
@@ -127,7 +127,7 @@ class Ordine(models.Model):
                         da_scalare = componente.quantita_totale_per(item.quantita)
 
                         if componente.magazzino.quantita < da_scalare and componente.bloccante:
-                            raise ValueError(f"Scorte insufficienti per {componente.magazzino.nome}")
+                            raise prodottoError(f"Scorte insufficienti per {componente.magazzino.nome}")
 
                         componente.magazzino.quantita = models.F('quantita') - da_scalare
                         componente.magazzino.save()
@@ -167,6 +167,7 @@ class Ordine(models.Model):
 
         totali = defaultdict_to_dict(totali)
         return totali
+
 
 class OrdineRiga(models.Model):
     id = models.AutoField(primary_key=True)

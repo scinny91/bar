@@ -1,4 +1,7 @@
+import traceback
+
 from django.urls import reverse
+from django.db import models
 from collections import defaultdict
 from django.utils.timezone import localdate
 from django.db.models.functions import TruncDate
@@ -7,7 +10,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
 from bar.ordini.models import Ordine, OrdineRiga, STATUS_CHOICES, OPTION_CHOICES
-from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO
+from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO, ComponenteMagazzino, prodottoError
 
 from bar.core import Stato, Opzione, Categoria, Sottocategoria
 
@@ -50,9 +53,9 @@ def nuovo_ordine(request):
 @login_required
 def lista_ordini(request):
     data_ordine = request.GET.get('data_ordine')
-    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
     StatoAttesa = Stato.objects.get(chiave='in_attesa')
     StatoInPreparazione = Stato.objects.get(chiave='in_preparazione')
+    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine, stati_ammessi=[StatoAttesa, StatoInPreparazione])
     ordini = Ordine.objects.filter(creato__date=data_ordine, stato__in=[StatoAttesa, StatoInPreparazione]).order_by('creato')
     totali = Ordine.calcola_totali(ordini)
     context = { "ordini": ordini,
@@ -68,8 +71,13 @@ def lista_ordini(request):
 @login_required
 def riepilogo_ordini(request):
     data_ordine = request.GET.get('data_ordine')
-    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
-    ordini = Ordine.objects.filter(creato__date=data_ordine).order_by('creato')
+    StatoCompletato = Stato.objects.get(chiave='Completato')
+    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine,
+                                                                                              stati_ammessi=[
+                                                                                                  StatoCompletato])
+    ordini = Ordine.objects.filter(creato__date=data_ordine, stato__in=[StatoCompletato]).order_by(
+        'creato')
+
     totali = Ordine.calcola_totali(ordini)
     context = { "ordini": ordini,
                 "totali_per_stato_cat_sottocat": totali,
@@ -130,6 +138,15 @@ def modifica_ordine(request, pk):
 @login_required
 def elimina_ordine(request, pk):
     ordine = get_object_or_404(Ordine, pk=pk)
+    # Ripristina giacenza se era stata scalata (in_preparazione o completato)
+    for item in ordine.items.select_related('prodotto', 'stato'):
+        print(item)
+        if item.stato.chiave in ("completato", "in_preparazione"):
+            componenti = ComponenteMagazzino.objects.filter(prodotto=item.prodotto).select_related('magazzino')
+            for componente in componenti:
+                da_ripristinare = componente.quantita_totale_per(item.quantita)
+                componente.magazzino.quantita = models.F('quantita') + da_ripristinare
+                componente.magazzino.save()
     ordine.delete()
     return redirect('lista_ordini')
 
@@ -139,8 +156,13 @@ def conferma_ordine(request, pk):
     ordine.utente = request.user
     ordine.save()
     stato = get_object_or_404(Stato, chiave="in_preparazione")
-    ordine.cambia_stato_righe(stato)
-    messages.success(request, f"Ordine #{ordine.id}-{ordine.cliente} confermato con successo.")
+    try:
+        ordine.cambia_stato_righe(stato)
+        messages.success(request, f"Ordine #{ordine.id}-{ordine.cliente} confermato con successo.")
+    except prodottoError as e:
+        messages.warning(request, f"Ordine #{ordine.id}-{ordine.cliente} {str(e)}")
+
+
     return redirect('lista_ordini')
 
 
@@ -202,14 +224,18 @@ def set_stato_riga_ordine(request, pk="", stato=""):
 
 
 
-def ottieni_data_ordine_precedente_successiva(data_ordine):
+def ottieni_data_ordine_precedente_successiva(data_ordine, stati_ammessi=[]):
     if not data_ordine:
         data_ordine = localdate()    # restituisce la data odierna (timezone aware)
     else:
         data_ordine = datetime.strptime(data_ordine, '%d-%m-%Y')
 
+    # Filtro per stato se fornito
+    ordini_qs = Ordine.objects.all()
+    if stati_ammessi:
+        ordini_qs = ordini_qs.filter(stato__in=stati_ammessi)
 
-    date_distinte = Ordine.objects.annotate(data=TruncDate('creato')) \
+    date_distinte = ordini_qs.annotate(data=TruncDate('creato')) \
         .values_list('data', flat=True) \
         .distinct()
 

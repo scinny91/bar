@@ -5,14 +5,14 @@
 {% if not is_riepilogo %}
     <h2> Elenco ordini in corso {{date}}</h2>
     <a href="{% url 'nuovo_ordine' %}" class="btn btn-success btn-lg mb-3"> + Nuovo Ordine</a>
-     {% if data_precedente != "" %}
+    {% if data_precedente %}
         <a href="{% url 'lista_ordini' %}?data_ordine={{ data_precedente }}" class="btn btn-outline-dark btn-lg mb-3">
-        << Ordini del {{ data_precedente }}
+            &laquo; Ordini del {{ data_precedente }}
         </a>
     {% endif %}
-    {% if data_successiva != "" %}
+    {% if data_successiva %}
         <a href="{% url 'lista_ordini' %}?data_ordine={{ data_successiva }}" class="btn btn-outline-dark btn-lg mb-3">
-        Ordini del {{ data_successiva }} >>
+            Ordini del {{ data_successiva }} &raquo;
         </a>
     {% endif %}
 {% else %}
@@ -28,7 +28,6 @@
   {% endfor %}
 {% endif %}
 
-<form method="post">{% csrf_token %}
 <table class="table">
     <tr>
         <th>ID</th>
@@ -54,44 +53,43 @@
           <ul class="mb-0 ps-3">
             {% for riga in p.items.all %}
               <li>{{ riga }}
-                  {% if is_riepilogo %}
-             [{{ riga.stato }}]
-        {% endif %} </li>
+                {% if is_riepilogo %}[{{ riga.stato }}]{% endif %}
+              </li>
             {% empty %}
               <li><em>Nessun prodotto</em></li>
             {% endfor %}
           </ul>
         </td>
-        {% if not is_riepilogo  %}
-            <td>
-              <div class="d-flex flex-column gap-2">
-                <a href="{% url 'modifica_ordine' p.id %}" class="btn btn-lg btn-primary w-100" title="Modifica">
-                  <i class="fa-solid fa-pen"></i>
-                </a>
-                <a href="{% url 'conferma_ordine' p.id %}" class="btn btn-lg btn-success w-100" title="Conferma">
-                  <i class="fa-solid fa-check"></i>
-                </a>
-                <form action="{% url 'elimina_ordine' p.id %}" method="post">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-danger btn-lg w-100" onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');" title="Elimina">
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                </form>
-              </div>
-            </td>
+        {% if not is_riepilogo %}
+        <td>
+          <div class="d-flex flex-column gap-2">
+            <a href="{% url 'modifica_ordine' p.id %}" class="btn btn-lg btn-primary w-100" title="Modifica">
+              <i class="fa-solid fa-pen"></i>
+            </a>
+            <a href="{% url 'conferma_ordine' p.id %}" class="btn btn-lg btn-success w-100" title="Conferma">
+              <i class="fa-solid fa-check"></i>
+            </a>
+            <form action="{% url 'elimina_ordine' p.id %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-lg w-100"
+                      onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');"
+                      title="Elimina">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </form>
+          </div>
+        </td>
         {% endif %}
-
     </tr>
     {% endfor %}
 </table>
-
 
 <div class="row">
   {% for stato, categorie in totali_per_stato_cat_sottocat.items %}
     <div class="col-md-4 mb-4">
       <div class="card h-100">
         <div class="card-header bg-secondary text-white text-capitalize">
-           {{ stato|replace:"_, " }}
+          {{ stato|replace:"_, " }}
         </div>
         <div class="card-body">
           {% for categoria, sottocategorie in categorie.items %}
@@ -99,11 +97,11 @@
             <ul>
               {% for sottocategoria, valori in sottocategorie.items %}
                 {% if valori.quantità > 0 %}
-                <li>
-                  <strong>{{ sottocategoria }}</strong> –
-                  Quantità: {{ valori.quantità }},
-                  Totale: €{{ valori.totale|floatformat:2 }}
-                </li>
+                  <li>
+                    <strong>{{ sottocategoria }}</strong> –
+                    Quantità: {{ valori.quantità }},
+                    Totale: €{{ valori.totale|floatformat:2 }}
+                  </li>
                 {% endif %}
               {% endfor %}
             </ul>
@@ -114,5 +112,4 @@
   {% endfor %}
 </div>
 
-</form>
 {% endblock %}

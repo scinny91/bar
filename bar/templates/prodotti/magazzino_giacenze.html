@@ -22,7 +22,7 @@
                 <td>{{ voce.nome }}</td>
                 <td>{{ voce.quantita }}</td>
                 <td>
-                  <input type="number" name="qty_{{ voce.id }}" value="{{ voce.quantita }}" class="form-control" min="0">
+                  <input type="number" name="qty_{{ voce.id }}" value="{{ voce.quantita }}" class="form-control" min="0" step="0.01">
                 </td>
                 <td>
                   <input type="number" name="soglia_minima_{{ voce.id }}" value="{{ voce.soglia_minima }}" class="form-control" min="0">
@@ -37,7 +37,7 @@
                 </td>
                 <td></td>
                 <td>
-                    <input type="number" name="new_quantita" class="form-control" min="0" placeholder="Quantità iniziale">
+                    <input type="number" name="new_quantita" class="form-control" min="0" placeholder="Quantità iniziale" step="0.01">
                 </td>
                 <td>
                     <input type="number" name="new_soglia_minima" class="form-control" min="0" placeholder="Soglia minima">
