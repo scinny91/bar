@@ -55,17 +55,19 @@
         <th>Costi (€)</th>
         <th>Incidenza sul passivo (%)</th>
         <th>Quantità venduta</th>
+        <th>Utile</th>
       </tr>
     </thead>
     <tbody>
-      {% for chiave, valore in redditivita.items %}
+      {% for valore in redditivita %}
         <tr>
-          <td>{{ chiave }}</td>
+          <td>{{ valore.chiave }}</td>
           <td>{{ valore.attivo|floatformat:2 }}</td>
-          <td>{{ valore.redditivita_attiva|floatformat:2 }}</td>
+          <td>{{ valore.perc_attivo|floatformat:2 }}</td>
           <td>{{ valore.passivo|floatformat:2 }}</td>
-          <td>{{ valore.redditivita_passiva|floatformat:2 }}</td>
+          <td>{{ valore.perc_passivo|floatformat:2 }}</td>
           <td>{{ valore.quantita_totale|floatformat:2 }}</td>
+          <td>{{ valore.utile|floatformat:2 }}</td>
         </tr>
       {% empty %}
         <tr><td colspan="3">Nessun dato disponibile.</td></tr>
