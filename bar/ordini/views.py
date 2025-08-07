@@ -19,7 +19,7 @@ from datetime import datetime
 
 @login_required
 def nuovo_ordine(request):
-    prodotti = Prodotto.objects.all().order_by('categoria', 'sottocategoria', 'nome')
+    prodotti = Prodotto.objects.filter(stato='valido').order_by('categoria', 'sottocategoria', 'nome')
     if request.method == 'POST':
         ordine = Ordine()
         ordine.utente = request.user

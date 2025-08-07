@@ -63,6 +63,16 @@ class Prodotto(models.Model):
         through='ComponenteMagazzino',
         related_name='distinta_base'
     )
+
+    STATO_SCELTE = [
+        ('valido', 'Valido'),
+        ('annullato', 'Annullato'),
+    ]
+    stato = models.CharField(
+        max_length=10,
+        choices=STATO_SCELTE,
+        default='valido',
+    )
     def __str__(self):
         cat = self.categoria.valore if self.categoria else "Senza categoria"
         sub = self.sottocategoria.valore if self.sottocategoria else "Senza sottocategoria"
