@@ -33,4 +33,6 @@ class Categoria(ParametroGenerico):
     pass
 
 class Sottocategoria(ParametroGenerico):
+    opzioni_abilitate = models.ManyToManyField('Opzione', blank=True, related_name='sottocategorie')
+    flag_subito_completato = models.BooleanField(default=False)
     pass
