@@ -35,4 +35,13 @@ class Categoria(ParametroGenerico):
 class Sottocategoria(ParametroGenerico):
     opzioni_abilitate = models.ManyToManyField('Opzione', blank=True, related_name='sottocategorie')
     flag_subito_completato = models.BooleanField(default=False)
+    def get_opzioni_abilitate_choices(self, with_void=True):
+        try:
+            qs = self.opzioni_abilitate.all().order_by('valore')
+            choices = [(obj.chiave, obj.valore) for obj in qs]
+            if with_void:
+                choices.insert(0, ("", "-"))
+            return choices
+        except Exception:
+            return [("", "-")] if with_void else []
     pass
