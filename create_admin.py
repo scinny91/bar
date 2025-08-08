@@ -13,3 +13,20 @@ if not User.objects.filter(username='admin').exists():
     print("✅ Superuser 'admin' creato.")
 else:
     print("ℹ️ Superuser 'admin' già esistente.")
+
+
+from bar.core import Stato
+# Lista degli stati da inserire
+stati = [
+    ('non_trovato', 'Non trovato'),
+    ('completato', 'Completato'),
+    ('in_preparazione', 'In Preparazione'),
+    ('in_attesa', 'In Attesa'),
+]
+
+for chiave, valore in stati:
+    if not Stato.objects.filter(chiave=chiave).exists():
+        Stato.objects.create(chiave=chiave, valore=valore)
+        print(f"✅ Stato '{chiave}' creato.")
+    else:
+        print(f"ℹ️ Stato '{chiave}' già esistente.")
