@@ -1,4 +1,16 @@
 from django.db import models
+from django.contrib.auth.models import User
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    postazione_predefinita = models.ForeignKey(
+        'Postazione',
+        on_delete=models.SET_NULL,  # se la postazione viene cancellata, metto null
+        null=True,  # permette valore null
+        blank=True,
+    )
+    def __str__(self):
+        return f"Profilo di {self.user.username}"
 
 class ParametroGenerico(models.Model):
     chiave = models.CharField(max_length=50, unique=True)
@@ -32,15 +44,20 @@ class Opzione(ParametroGenerico):
 class Categoria(ParametroGenerico):
     pass
 
+class Postazione(ParametroGenerico):
+    sottocategorie = models.ManyToManyField('Sottocategoria', blank=True, related_name='sottocategorie')
+
+    pass
+
 class Sottocategoria(ParametroGenerico):
-    opzioni_abilitate = models.ManyToManyField('Opzione', blank=True, related_name='sottocategorie')
+    opzioni_abilitate = models.ManyToManyField('Opzione', blank=True, related_name='opzioni_abilitate')
     flag_subito_completato = models.BooleanField(default=False)
     def get_opzioni_abilitate_choices(self, with_void=True):
         try:
             qs = self.opzioni_abilitate.all().order_by('valore')
             choices = [(obj.chiave, obj.valore) for obj in qs]
             if with_void:
-                choices.insert(0, ("", "-"))
+                choices.insert(0, ("", "nessuna opzione"))
             return choices
         except Exception:
             return [("", "-")] if with_void else []
