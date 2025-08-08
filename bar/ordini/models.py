@@ -132,7 +132,7 @@ class Ordine(models.Model):
                         componente.magazzino.quantita = models.F('quantita') - da_scalare
                         componente.magazzino.save()
 
-            if new_stato.chiave == "in_preparazione" and item.prodotto.categoria.chiave != "cucina":
+            if new_stato.chiave == "in_preparazione" and item.prodotto.sottocategoria.flag_subito_completato:
                 # il bar va direttamente in completato
                 item.stato = stato_completato
             else:
