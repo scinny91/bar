@@ -19,7 +19,7 @@ from datetime import datetime
 
 @login_required
 def nuovo_ordine(request):
-    prodotti = Prodotto.objects.filter(stato='valido').order_by('categoria', 'sottocategoria', 'nome')
+    prodotti = Prodotto.objects.filter(stato='valido').order_by('sottocategoria__categoria', 'sottocategoria', 'nome')
     if request.method == 'POST':
         ordine = Ordine()
         ordine.utente = request.user
@@ -34,7 +34,7 @@ def nuovo_ordine(request):
         prodotti_con_righe.append({
             'nome': prodotto.nome,
             'righe': righe,
-            'categoria': prodotto.categoria,
+            'categoria': prodotto.sottocategoria.categoria,
             'sottocategoria': prodotto.sottocategoria,
             'prezzo': prodotto.prezzo,
             'id': prodotto.id
@@ -95,7 +95,7 @@ def riepilogo_ordini(request):
 def modifica_ordine(request, pk):
 
     ordine = get_object_or_404(Ordine, id=pk)
-    prodotti = Prodotto.objects.all().order_by('categoria', 'sottocategoria', 'nome')
+    prodotti = Prodotto.objects.all().order_by('sottocategoria__categoria', 'sottocategoria', 'nome')
 
     if request.method == 'POST':
         ordine.utente = request.user
@@ -120,7 +120,7 @@ def modifica_ordine(request, pk):
         prodotti_con_righe.append({
             'nome': prodotto.nome,
             'righe': righe,
-            'categoria': prodotto.categoria,
+            'categoria': prodotto.sottocategoria.categoria,
             'sottocategoria': prodotto.sottocategoria,
             'prezzo': prodotto.prezzo,
             'id': prodotto.id

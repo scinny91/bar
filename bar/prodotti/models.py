@@ -46,12 +46,7 @@ class Prodotto(models.Model):
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=100)
     prezzo = models.DecimalField(max_digits=6, decimal_places=2) #prezzo retail
-    categoria = models.ForeignKey(
-        'Categoria',
-        on_delete=models.SET_NULL,  # se la sottocategoria viene cancellata, metto null
-        null=True,  # permette valore null
-        blank=True,
-    )
+
     sottocategoria = models.ForeignKey(
         'Sottocategoria',
         on_delete=models.SET_NULL,  # se la sottocategoria viene cancellata, metto null

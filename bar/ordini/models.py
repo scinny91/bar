@@ -16,7 +16,7 @@ OPTION_CHOICES = Opzione.get_choices()
 class OrdineRigaManager(models.Manager):
     def righe_raggruppate_per_categoria(self, righe):
         def safe_key(r):
-            cat = r.prodotto.categoria.valore if r.prodotto.categoria else "Senza categoria"
+            cat = r.prodotto.sottocategoria.categoria.valore if r.prodotto.sottocategoria.categoria else "Senza categoria"
             sub = r.prodotto.sottocategoria.valore if r.prodotto.sottocategoria else "Senza sottocategoria"
             return (cat, sub)
 
@@ -158,7 +158,7 @@ class Ordine(models.Model):
         for ordine in ordini:
             stato = ordine.stato.valore
             for riga in ordine.items.all():
-                cat = riga.prodotto.categoria.valore if riga.prodotto.categoria else "Senza categoria"
+                cat = riga.prodotto.sottocategoria.categoria.valore if riga.prodotto.sottocategoria.categoria else "Senza categoria"
                 sub = riga.prodotto.sottocategoria.valore if riga.prodotto.sottocategoria else "Senza sottocategoria"
 
                 qta = riga.quantita

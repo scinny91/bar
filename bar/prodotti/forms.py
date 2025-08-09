@@ -5,7 +5,7 @@ from .models import ComponenteMagazzino, Prodotto, Magazzino
 class ProdottoForm(forms.ModelForm):
     class Meta:
         model = Prodotto
-        fields = ['nome', 'prezzo', 'categoria', 'sottocategoria', 'stato']
+        fields = ['nome', 'prezzo', 'sottocategoria', 'stato']
 
 class ComponenteMagazzinoForm(forms.ModelForm):
     class Meta:
