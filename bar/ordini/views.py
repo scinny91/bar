@@ -77,6 +77,7 @@ def riepilogo_ordini(request):
                                                                                                   StatoCompletato])
     ordini = Ordine.objects.filter(creato__date=data_ordine, stato__in=[StatoCompletato]).order_by(
         'creato')
+    
 
     totali = Ordine.calcola_totali(ordini)
     context = { "ordini": ordini,
