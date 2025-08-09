@@ -5,18 +5,18 @@
 {% if not is_riepilogo %}
     <h2> Elenco ordini in corso {{date}}</h2>
     <a href="{% url 'nuovo_ordine' %}" class="btn btn-success btn-lg mb-3"> + Nuovo Ordine</a>
-    {% if data_precedente %}
+{% else %}
+    <h2> Elenco ordini totali {{date}}</h2>
+{% endif %}
+{% if data_precedente %}
         <a href="{% url 'lista_ordini' %}?data_ordine={{ data_precedente }}" class="btn btn-outline-dark btn-lg mb-3">
             &laquo; Ordini del {{ data_precedente }}
         </a>
     {% endif %}
-    {% if data_successiva %}
-        <a href="{% url 'lista_ordini' %}?data_ordine={{ data_successiva }}" class="btn btn-outline-dark btn-lg mb-3">
-            Ordini del {{ data_successiva }} &raquo;
-        </a>
-    {% endif %}
-{% else %}
-    <h2> Elenco ordini totali {{date}}</h2>
+{% if data_successiva %}
+    <a href="{% url 'lista_ordini' %}?data_ordine={{ data_successiva }}" class="btn btn-outline-dark btn-lg mb-3">
+        Ordini del {{ data_successiva }} &raquo;
+    </a>
 {% endif %}
 
 {% if messages %}

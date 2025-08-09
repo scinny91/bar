@@ -45,8 +45,7 @@ class Categoria(ParametroGenerico):
     pass
 
 class Postazione(ParametroGenerico):
-    sottocategorie = models.ManyToManyField('Sottocategoria', blank=True, related_name='sottocategorie')
-
+    sottocategorie_associate = models.ManyToManyField('Sottocategoria', blank=True, related_name='sottocategorie_associate')
     pass
 
 class Sottocategoria(ParametroGenerico):

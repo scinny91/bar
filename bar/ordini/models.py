@@ -30,7 +30,7 @@ class OrdineRigaManager(models.Manager):
             })
         return raggruppate
 
-    def righe_da_evadere(self, data_ordine, stati_ordine=[]):
+    def righe_da_evadere(self, data_ordine, stati_ordine=[], sottocategorie=[]):
         filtro_base = {
             'ordine__creato__date': data_ordine
         }
@@ -38,6 +38,9 @@ class OrdineRigaManager(models.Manager):
             filtro_base['stato__chiave__in'] = stati_ordine
         else:
             filtro_base['stato__chiave'] = 'in_attesa'  # default
+
+        if sottocategorie:
+            filtro_base['prodotto__sottocategoria__in'] = sottocategorie
 
         return self.select_related('ordine', 'prodotto') \
             .filter(**filtro_base) \

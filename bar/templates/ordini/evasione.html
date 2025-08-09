@@ -15,6 +15,10 @@
 {% block content %}
 <div class="mt-4">
   <h2>{{ title }}</h2>
+
+{% if sottocategorie_visualizzate %}
+  Sottocategorie abilitate: {{ sottocategorie_visualizzate }}
+{% endif %}
 {% if messages %}
   {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show w-100 rounded-0 m-0" role="alert">
