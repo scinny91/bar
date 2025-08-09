@@ -51,6 +51,14 @@ class Postazione(ParametroGenerico):
 class Sottocategoria(ParametroGenerico):
     opzioni_abilitate = models.ManyToManyField('Opzione', blank=True, related_name='opzioni_abilitate')
     flag_subito_completato = models.BooleanField(default=False)
+
+    categoria = models.ForeignKey(
+        'Categoria',
+        on_delete=models.SET_NULL,  # se la sottocategoria viene cancellata, metto null
+        null=True,  # permette valore null
+        blank=True,
+    )
+
     def get_opzioni_abilitate_choices(self, with_void=True):
         try:
             qs = self.opzioni_abilitate.all().order_by('valore')
