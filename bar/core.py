@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.template.defaulttags import comment
+
+#from bar.ordini.models import Ordine
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -48,6 +51,8 @@ class Postazione(ParametroGenerico):
     sottocategorie_associate = models.ManyToManyField('Sottocategoria', blank=True, related_name='sottocategorie_associate')
     pass
 
+
+
 class Sottocategoria(ParametroGenerico):
     opzioni_abilitate = models.ManyToManyField('Opzione', blank=True, related_name='opzioni_abilitate')
     flag_subito_completato = models.BooleanField(default=False)
@@ -69,3 +74,12 @@ class Sottocategoria(ParametroGenerico):
         except Exception:
             return [("", "-")] if with_void else []
     pass
+
+class  Box(ParametroGenerico):
+    is_free = models.BooleanField(default=True)
+    postazione = models.ForeignKey(
+        'Postazione',
+        on_delete=models.SET_NULL,  # se la sottocategoria viene cancellata, metto null
+        null=True,  # permette valore null
+        blank=True,
+    )

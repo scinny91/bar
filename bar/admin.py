@@ -6,7 +6,7 @@ from import_export.admin import ExportMixin, ImportMixin, ImportExportModelAdmin
 
 from bar.prodotti.models import Prodotto, Magazzino, ComponenteMagazzino
 from bar.ordini.models import Ordine, OrdineRiga
-from bar.core import Stato, Opzione, Categoria, Sottocategoria, Postazione, UserProfile
+from bar.core import Stato, Opzione, Categoria, Sottocategoria, Postazione, UserProfile, Box
 
 
 # Classe generica per i resource
@@ -62,6 +62,10 @@ class SottocategoriaAdmin(BaseImportExportAdmin):
 
 @admin.register(Postazione)
 class PostazioneAdmin(BaseImportExportAdmin):
+    pass
+
+@admin.register(Box)
+class BoxAdmin(BaseImportExportAdmin):
     pass
 
 
