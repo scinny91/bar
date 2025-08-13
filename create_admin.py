@@ -22,6 +22,8 @@ stati = [
     ('completato', 'Completato'),
     ('in_preparazione', 'In Preparazione'),
     ('in_attesa', 'In Attesa'),
+    ('pronto', 'Pronto'),
+    ('parzialmente_completato', 'Parzialmente evaso'),
 ]
 
 for chiave, valore in stati:

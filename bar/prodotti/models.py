@@ -69,7 +69,7 @@ class Prodotto(models.Model):
         default='valido',
     )
     def __str__(self):
-        cat = self.categoria.valore if self.categoria else "Senza categoria"
+        cat = self.sottocategoria.categoria.valore if self.sottocategoria.categoria else "Senza categoria"
         sub = self.sottocategoria.valore if self.sottocategoria else "Senza sottocategoria"
         return f"{self.nome} ({cat} / {sub}) - €{self.prezzo}"
 

@@ -55,8 +55,9 @@ def lista_ordini(request):
     data_ordine = request.GET.get('data_ordine')
     StatoAttesa = Stato.objects.get(chiave='in_attesa')
     StatoInPreparazione = Stato.objects.get(chiave='in_preparazione')
-    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine, stati_ammessi=[StatoAttesa, StatoInPreparazione])
-    ordini = Ordine.objects.filter(creato__date=data_ordine, stato__in=[StatoAttesa, StatoInPreparazione]).order_by('creato')
+    StatoParzialmenteCompletato = Stato.objects.get(chiave='parzialmente_completato')
+    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine, stati_ammessi=[StatoAttesa, StatoInPreparazione, StatoParzialmenteCompletato])
+    ordini = Ordine.objects.filter(creato__date=data_ordine, stato__in=[StatoAttesa, StatoInPreparazione, StatoParzialmenteCompletato]).order_by('creato')
     totali = Ordine.calcola_totali(ordini)
     context = { "ordini": ordini,
                 "totali_per_stato_cat_sottocat": totali,
@@ -72,10 +73,12 @@ def lista_ordini(request):
 def riepilogo_ordini(request):
     data_ordine = request.GET.get('data_ordine')
     StatoCompletato = Stato.objects.get(chiave='Completato')
+    StatoParzialmenteCompletato = Stato.objects.get(chiave='parzialmente_completato')
     data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine,
                                                                                               stati_ammessi=[
+                                                                                                  StatoParzialmenteCompletato,
                                                                                                   StatoCompletato])
-    ordini = Ordine.objects.filter(creato__date=data_ordine, stato__in=[StatoCompletato]).order_by(
+    ordini = Ordine.objects.filter(creato__date=data_ordine, stato__in=[StatoCompletato, StatoParzialmenteCompletato]).order_by(
         'creato')
 
 
@@ -199,7 +202,7 @@ def consegne(request):
 
     data_ordine = request.GET.get('data_ordine')
     data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
-    righe = OrdineRiga.objects.righe_da_evadere(data_ordine, stati_ordine=["in_preparazione", "non_trovato"], sottocategorie=sottocategorie_visualizzate)
+    righe = OrdineRiga.objects.righe_da_evadere(data_ordine, stati_ordine=["pronto", "non_trovato"], sottocategorie=sottocategorie_visualizzate)
     righe_raggruppate = OrdineRiga.objects.righe_raggruppate_per_categoria(righe)
 
     return render(request, 'ordini/evasione.html', {
@@ -211,7 +214,9 @@ def consegne(request):
     })
 
 @login_required
-def set_stato_riga_ordine(request, pk="", stato=""):
+def set_stato_riga_ordine(request, pk="", stato="", is_consegna=1):
+    is_consegna = bool(is_consegna)
+    print(is_consegna)
     riga = get_object_or_404(OrdineRiga, id=pk)
     nuovo_stato = get_object_or_404(Stato, chiave=stato)
     riga.stato = nuovo_stato
@@ -222,8 +227,12 @@ def set_stato_riga_ordine(request, pk="", stato=""):
 
     messages.success(request, f"Ordine #{riga.ordine.id}.{riga.id} passata in {riga.stato.valore}")
 
-    # Costruisci l’URL con il parametro
-    url = reverse('consegne')
+    if is_consegna:
+        # Costruisci l’URL con il parametro
+        url = reverse('consegne')
+    else:
+        url = reverse('evasione')
+
     if data_ordine:
         url += f"?data_ordine={data_ordine}"
     return redirect(url)

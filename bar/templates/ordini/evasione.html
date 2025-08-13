@@ -43,9 +43,7 @@
             <th>Opzioni</th>
             <th>Quantità</th>
             <th>Stato</th>
-            {% if is_consegna %}
-              <th>Azioni</th>
-            {% endif %}
+            <th>Azioni</th>
           </tr>
         </thead>
         <tbody>
@@ -65,11 +63,17 @@
                 <td>{{ riga_ordine.stato }}</td>
                 {% if is_consegna %}
                 <td>
-                  <a href="{% url 'set_stato_riga_ordine' riga_ordine.id 'completato' %}?data_ordine={{ request.GET.data_ordine }}" class="btn btn-success" title="Segna come COMPLETATO">
+                  <a href="{% url 'set_stato_riga_ordine' riga_ordine.id 'completato' '1' %}?data_ordine={{ request.GET.data_ordine }}" class="btn btn-success" title="Segna come COMPLETATO">
                     <i class="fa-solid fa-check"></i>
                   </a>
-                  <a href="{% url 'set_stato_riga_ordine' riga_ordine.id 'non_trovato' %}?data_ordine={{ request.GET.data_ordine }}" class="btn btn-warning" title="Segna come NON TROVATO">
+                  <a href="{% url 'set_stato_riga_ordine' riga_ordine.id 'non_trovato' '1' %}?data_ordine={{ request.GET.data_ordine }}" class="btn btn-warning" title="Segna come NON TROVATO">
                     <i class="fa-solid fa-triangle-exclamation"></i>
+                  </a>
+                </td>
+                {% else %}
+                <td>
+                  <a href="{% url 'set_stato_riga_ordine' riga_ordine.id 'pronto' '0' %}?data_ordine={{ request.GET.data_ordine }}" class="btn btn-success" title="Segna come PRONTO">
+                    <i class="fa-solid fa-check"></i>
                   </a>
                 </td>
                 {% endif %}
