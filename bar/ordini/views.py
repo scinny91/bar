@@ -175,12 +175,15 @@ def evasione(request):
     data_ordine = request.GET.get('data_ordine')
     data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
     sottocategorie_visualizzate = request.user.userprofile.postazione_predefinita.sottocategorie_associate.all()
-    righe = OrdineRiga.objects.righe_da_evadere(data_ordine, stati_ordine=["in_preparazione"], sottocategorie=sottocategorie_visualizzate)
+    box_associati = request.user.userprofile.postazione_predefinita.box_associati.all()
+
+    righe = OrdineRiga.objects.righe_da_evadere(data_ordine, stati_ordine=["in_preparazione", "pronto"], sottocategorie=sottocategorie_visualizzate)
     righe_raggruppate = OrdineRiga.objects.righe_raggruppate_per_categoria(righe)
 
     return render(request, 'ordini/evasione.html', {
         'righe_raggruppate': righe_raggruppate,
         'is_consegna': False,
+        'box_liberi': ', '.join([i.valore for i in box_associati]),
         'sottocategorie_visualizzate': ', '.join([i.valore for i in sottocategorie_visualizzate]),
         'title': f"Ordini da evadere {data_ordine.strftime('%d-%m-%Y')}"
     })
@@ -208,6 +211,7 @@ def consegne(request):
     return render(request, 'ordini/evasione.html', {
         'righe_raggruppate': righe_raggruppate,
         'is_consegna': True,
+        'box_liberi': '',
         'sottocategorie_visualizzate': ', '.join([i.valore for i in sottocategorie_visualizzate]),
         'title': f"Ordini da consegnare {data_ordine.strftime('%d-%m-%Y')}",
 
@@ -216,7 +220,6 @@ def consegne(request):
 @login_required
 def set_stato_riga_ordine(request, pk="", stato="", is_consegna=1):
     is_consegna = bool(is_consegna)
-    print(is_consegna)
     riga = get_object_or_404(OrdineRiga, id=pk)
     nuovo_stato = get_object_or_404(Stato, chiave=stato)
     riga.stato = nuovo_stato

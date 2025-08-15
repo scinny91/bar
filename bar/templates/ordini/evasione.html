@@ -17,7 +17,7 @@
   <h2>{{ title }}</h2>
 
 {% if sottocategorie_visualizzate %}
-  Sottocategorie abilitate: {{ sottocategorie_visualizzate }}
+  Sottocategorie abilitate: {{ sottocategorie_visualizzate }} Box liberi: {{ box_liberi }}
 {% endif %}
 {% if messages %}
   {% for message in messages %}
@@ -69,6 +69,16 @@
                   <a href="{% url 'set_stato_riga_ordine' riga_ordine.id 'non_trovato' '1' %}?data_ordine={{ request.GET.data_ordine }}" class="btn btn-warning" title="Segna come NON TROVATO">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                   </a>
+                </td>
+                {% elif not is_consegna and riga_ordine.stato.chiave == 'pronto' %}
+                <td>
+                  {% with box=riga_ordine.get_box %}
+                    {% if box %}
+                        {{ box }}
+                    {% else %}
+                        Nessun box
+                    {% endif %}
+                  {% endwith %}
                 </td>
                 {% else %}
                 <td>

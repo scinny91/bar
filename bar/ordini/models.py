@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO, ComponenteMagazzino, prodottoError
-from bar.core import Stato, Opzione
+from bar.core import Stato, Opzione, Box, Postazione
 from collections import defaultdict
 
 
@@ -213,4 +213,26 @@ class OrdineRiga(models.Model):
             return f"{self.__str__()} [{self.stato.valore} da: {self.utente}]"
         return f"{self.__str__()}"
 
+    def get_box(self):
+        # Trova il box assegnato a ordine+postazione
+        return BoxAllocazione.objects.filter(
+            postazione=self.prodotto.sottocategoria.postazione,
+            ordine=self.ordine
+        ).first()
 
+class BoxAllocazione(models.Model):
+    ordine = models.ForeignKey('Ordine', on_delete=models.CASCADE)
+    postazione = models.ForeignKey('Postazione', on_delete=models.CASCADE)
+    box = models.ForeignKey('Box', on_delete=models.CASCADE)
+    attivo = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ordine', 'postazione', 'attivo'],
+                name='unique_active_box_per_postazione_ordine'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.box} → Ordine {self.ordine.id} ({self.postazione})"
