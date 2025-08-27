@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.db import models
 from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO, ComponenteMagazzino, prodottoError
 from bar.core import Stato, Opzione, Box, Postazione
@@ -97,27 +98,40 @@ class Ordine(models.Model):
 
         self.items.all().delete()
 
+        # Pre-fetch
+        stato_in_attesa = Stato.objects.get(chiave="in_attesa")
+        # Opzioni già esistenti in un dizionario per lookup veloce
+        opzioni_dict = {op.chiave: op for op in Opzione.objects.all()}
+
+        righe_da_creare = []
+
         for prodotto in prodotti:
             qty_list = post_data.getlist(f'qty_{prodotto.id}[]')
             opt_list = post_data.getlist(f'opt_{prodotto.id}[]')
 
-            for qty_str, opt in zip(qty_list, opt_list):
+            for qty_str, opt_key in zip(qty_list, opt_list):
                 try:
                     qty = int(qty_str)
                 except ValueError:
                     qty = 0
 
                 if qty > 0:
-                    obj = OrdineRiga.objects.create(
+                    obj = OrdineRiga(
                         ordine=self,
                         prodotto=prodotto,
                         quantita=qty,
-                        stato=Stato.objects.get(chiave="in_attesa"),
+                        stato=stato_in_attesa,
                     )
 
-                    if opt:
-                        obj.opzioni = Opzione.objects.get(chiave=opt)
-                        obj.save()
+                    # Associa opzione solo se esiste
+                    if opt_key and opt_key in opzioni_dict:
+                        obj.opzioni = opzioni_dict[opt_key]
+
+                    righe_da_creare.append(obj)
+
+        # Inserimento bulk
+        with transaction.atomic():
+            OrdineRiga.objects.bulk_create(righe_da_creare)
 
     def cambia_stato_righe(self, new_stato):
         stato_completato = Stato.objects.get(chiave="completato")
