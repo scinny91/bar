@@ -47,7 +47,7 @@ def riepilogo_bilancio(request):
 
         # Aggregazione dinamica
         if aggregation == "categoria":
-            chiave = "prodotto__categoria__valore"
+            chiave = "prodotto__sottocategoria__categoria__valore"
         elif aggregation == "sottocategoria":
             chiave = "prodotto__sottocategoria__valore"
         else:
