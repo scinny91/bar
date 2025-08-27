@@ -64,20 +64,22 @@
         {% if not is_riepilogo %}
         <td>
           <div class="d-flex flex-column gap-2">
+            {% if p.stato.chiave == "in_attesa" %}
             <a href="{% url 'modifica_ordine' p.id %}" class="btn btn-lg btn-primary w-100" title="Modifica">
               <i class="fa-solid fa-pen"></i>
             </a>
             <a href="{% url 'conferma_ordine' p.id %}" class="btn btn-lg btn-success w-100" title="Conferma">
               <i class="fa-solid fa-check"></i>
             </a>
-            <form action="{% url 'elimina_ordine' p.id %}" method="post">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-danger btn-lg w-100"
-                      onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');"
-                      title="Elimina">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </form>
+                <form action="{% url 'elimina_ordine' p.id %}" method="post">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-lg w-100"
+                          onclick="return confirm('Sei sicuro di voler eliminare questo ordine?');"
+                          title="Elimina">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </form>
+            {% endif %}
           </div>
         </td>
         {% endif %}

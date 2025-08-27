@@ -25,10 +25,12 @@ class OrdineRigaManager(models.Manager):
         righe_ordinate = sorted(righe, key=safe_key)
         raggruppate = []
         for key, chunk in groupby(righe_ordinate, key=safe_key):
+            l = list(sorted(chunk, key= lambda x: x.ordine.id))
+
             raggruppate.append({
                 "categoria": key[0],
                 "sottocategoria": key[1],
-                "righe_ordini": list(chunk)
+                "righe_ordini": l
             })
         return raggruppate
 
@@ -238,10 +240,14 @@ class OrdineRiga(models.Model):
 
     def get_box(self):
         # Trova il box assegnato a ordine+postazione
-        return BoxAllocazione.objects.filter(
+        box = BoxAllocazione.objects.filter(
             postazione=self.prodotto.sottocategoria.postazione,
             ordine=self.ordine
         ).first()
+        if box:
+            return box.__str__()
+        else:
+            return "Nessun box"
 
 class BoxAllocazione(models.Model):
     ordine = models.ForeignKey('Ordine', on_delete=models.CASCADE)
@@ -258,4 +264,5 @@ class BoxAllocazione(models.Model):
         ]
 
     def __str__(self):
+        return f"{self.box}"
         return f"{self.box} → Ordine {self.ordine.id} ({self.postazione})"

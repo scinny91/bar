@@ -16,9 +16,11 @@
 <div class="mt-4">
   <h2>{{ title }}</h2>
 
+<!--
 {% if sottocategorie_visualizzate %}
   Sottocategorie abilitate: {{ sottocategorie_visualizzate }} Box liberi: {{ box_liberi }}
 {% endif %}
+-->
 {% if messages %}
   {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show w-100 rounded-0 m-0" role="alert">
@@ -65,14 +67,7 @@
                 <td>{{ riga_ordine.opzioni_display }}</td>
                 <td>{{ riga_ordine.quantita }}</td>
                 {% if is_consegna %}
-                  <td>{% with box=riga_ordine.get_box %}
-                    {% if box %}
-                        {{ box }}
-                    {% else %}
-                        Nessun box
-                    {% endif %}
-                  {% endwith %}
-                  </td>
+                  <td>{{ riga_ordine.get_box }} </td>
                 {% else %}
                   <td>{{ riga_ordine.stato }}</td>
                 {% endif %}
@@ -86,15 +81,7 @@
                   </a>
                 </td>
                 {% elif not is_consegna and riga_ordine.stato.chiave == 'pronto' %}
-                <td>
-                  {% with box=riga_ordine.get_box %}
-                    {% if box %}
-                        {{ box }}
-                    {% else %}
-                        Nessun box
-                    {% endif %}
-                  {% endwith %}
-                </td>
+                 <td>{{ riga_ordine.get_box }} </td>
                 {% else %}
                 <td>
                   <a href="{% url 'set_stato_riga_ordine' riga_ordine.id 'pronto' '0' %}?data_ordine={{ request.GET.data_ordine }}" class="btn btn-success" title="Segna come PRONTO">
