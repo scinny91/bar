@@ -1,23 +1,24 @@
-import traceback
+from silk.profiling.profiler import silk_profile
 
 from django.urls import reverse
 from django.db import models
-from collections import defaultdict
+from django.core.cache import cache
 from django.utils.timezone import localdate
 from django.db.models.functions import TruncDate
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
+from collections import defaultdict
+from datetime import datetime
+
 from bar.ordini.models import Ordine, OrdineRiga, STATUS_CHOICES, OPTION_CHOICES
 from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO, ComponenteMagazzino, prodottoError
-
 from bar.core import Stato, Opzione, Categoria, Sottocategoria
-
-from datetime import datetime
 
 
 @login_required
+@silk_profile()
 def nuovo_ordine(request):
     prodotti = Prodotto.objects.filter(stato='valido').order_by('sottocategoria__categoria', 'sottocategoria', 'nome')
     if request.method == 'POST':
@@ -51,22 +52,49 @@ def nuovo_ordine(request):
     return render(request, 'ordini/ordine_form.html', context)
 
 @login_required
+@silk_profile()
 def lista_ordini(request):
     data_ordine = request.GET.get('data_ordine')
-    StatoAttesa = Stato.objects.get(chiave='in_attesa')
-    StatoInPreparazione = Stato.objects.get(chiave='in_preparazione')
-    StatoParzialmenteCompletato = Stato.objects.get(chiave='parzialmente_completato')
-    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine, stati_ammessi=[StatoAttesa, StatoInPreparazione, StatoParzialmenteCompletato])
-    ordini = Ordine.objects.filter(creato__date=data_ordine, stato__in=[StatoAttesa, StatoInPreparazione, StatoParzialmenteCompletato]).order_by('creato')
-    totali = Ordine.calcola_totali(ordini)
-    context = { "ordini": ordini,
-                "totali_per_stato_cat_sottocat": totali,
-                "date": data_ordine.strftime('%d-%m-%Y'),
-                "data_precedente": data_precedente,
-                "data_successiva": data_successiva,
-                "is_riepilogo": False
-    }
 
+    # Ottieni gli stati dalla cache o dal DB
+    stati_cache = cache.get("stati")
+    if not stati_cache:
+        stati_cache = {s.chiave: s for s in Stato.objects.all()}
+        cache.set("stati", stati_cache, timeout=3600)  # 1 ora
+
+    StatoAttesa = stati_cache.get('in_attesa')
+    StatoInPreparazione = stati_cache.get('in_preparazione')
+    StatoParzialmenteCompletato = stati_cache.get('parzialmente_completato')
+
+    # Calcolo date precedente e successiva
+    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(
+        data_ordine,
+        stati_ammessi=[StatoAttesa, StatoInPreparazione, StatoParzialmenteCompletato]
+    )
+
+    # Query ottimizzata: select_related + prefetch_related
+    ordini = Ordine.objects.filter(
+        creato__date=data_ordine,
+        stato__in=[StatoAttesa, StatoInPreparazione, StatoParzialmenteCompletato]
+    ).order_by('creato').select_related(
+        'stato'
+    ).prefetch_related(
+        'items__prodotto',
+        'items__stato',
+        'items__opzioni'
+    )
+
+    # Totali calcolati come prima
+    totali = Ordine.calcola_totali(ordini)
+
+    context = {
+        "ordini": ordini,
+        "totali_per_stato_cat_sottocat": totali,
+        "date": data_ordine.strftime('%d-%m-%Y'),
+        "data_precedente": data_precedente,
+        "data_successiva": data_successiva,
+        "is_riepilogo": False
+    }
     return render(request, "ordini/lista_ordini.html", context)
 
 @login_required
