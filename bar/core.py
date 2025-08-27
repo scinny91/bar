@@ -82,4 +82,4 @@ class Sottocategoria(ParametroGenerico):
 
 class  Box(ParametroGenerico):
     attivo = models.BooleanField(default=False)
-    codice = models.CharField(max_length=100, default='')
+    codice = models.IntegerField(default=1)
