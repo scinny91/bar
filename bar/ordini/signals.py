@@ -4,7 +4,6 @@ from bar.ordini.models import OrdineRiga, BoxAllocazione
 from bar.core import Stato, Box, Postazione
 
 
-
 @receiver(post_save, sender=OrdineRiga)
 def aggiorna_stato_ordine(sender, instance, **kwargs):
     ordine = instance.ordine
@@ -52,10 +51,22 @@ def aggiorna_stato_ordine(sender, instance, **kwargs):
             box_libero = postazione.box_associati.filter(attivo=False).first()
 
             if not box_libero:
+                # Prendo l'ultimo codice per questa postazione, ordinando per codice decrescente
+                ultimo_box = postazione.box_associati.order_by('-codice').first()
+                if ultimo_box:
+                    codice = ultimo_box.codice + 1
+                else:
+                    codice = 1
                 # Se non c'è, creo un box nuovo (oppure puoi lanciare errore)
+                str = f"{postazione.chiave}-{codice}"
                 box_libero = Box.objects.create(
-                    codice=f"BOX-{Box.objects.count() + 1}", attivo=True
+                    chiave=str,
+                    valore=str.upper(),
+                    codice=codice,
+                    attivo=True,
                 )
+                # Associa il box appena creato alla postazione
+                postazione.box_associati.add(box_libero)
             else:
                 box_libero.attivo = True
                 box_libero.save()
@@ -68,21 +79,24 @@ def aggiorna_stato_ordine(sender, instance, **kwargs):
             )
 
         # --- LIBERAZIONE ---
+
     if stato_corrente == 'completato':
         if instance.prodotto.sottocategoria.flag_subito_completato == False:
             postazione = instance.prodotto.sottocategoria.postazione
-            righe_postazione = ordine.items.filter(
-                prodotto__sottocategoria__postazione=postazione
+            righe_postazione_pronte = ordine.items.filter(
+                prodotto__sottocategoria__postazione=postazione,
+                stato__chiave= "pronto"
             )
-            if all(r.stato.chiave == 'completato' for r in righe_postazione):
+
+            # solo pronto blocca il box!
+            if not righe_postazione_pronte:
 
                 # Trovo l'allocazione attiva e la libero
                 alloc = BoxAllocazione.objects.filter(
                     ordine=ordine, postazione=postazione, attivo=True
                 ).first()
                 if alloc:
-                    alloc.attivo = False
-                    alloc.save()
                     # Libero fisicamente il box
                     alloc.box.attivo = False
                     alloc.box.save()
+                    alloc.delete() # libero l'associazione
