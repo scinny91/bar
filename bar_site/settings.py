@@ -70,7 +70,7 @@ DATABASES = {
         'USER': os.environ.get('MYSQL_USER'),
         'PASSWORD': os.environ.get('MYSQL_PASSWORD'),
         'HOST': os.environ.get('MYSQL_HOST'),
-        'PORT': os.environ.get('MYSQL_PORT', '3306'),
+        'PORT': os.environ.get('MYSQL_PORT'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
@@ -91,3 +91,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 from django.contrib.messages import constants as message_constants
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+
+SILKY_PYTHON_PROFILER = True
