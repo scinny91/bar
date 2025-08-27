@@ -1,11 +1,12 @@
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db import models
+from django.core.cache import cache
+
 from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO, ComponenteMagazzino, prodottoError
 from bar.core import Stato, Opzione, Box, Postazione
+
 from collections import defaultdict
-
-
 from itertools import groupby
 
 
@@ -99,9 +100,17 @@ class Ordine(models.Model):
         self.items.all().delete()
 
         # Pre-fetch
-        stato_in_attesa = Stato.objects.get(chiave="in_attesa")
-        # Opzioni già esistenti in un dizionario per lookup veloce
-        opzioni_dict = {op.chiave: op for op in Opzione.objects.all()}
+        # Recupera lo stato, usando cache
+        stato_in_attesa = cache.get("stato_in_attesa")
+        if not stato_in_attesa:
+            stato_in_attesa = Stato.objects.get(chiave="in_attesa")
+            cache.set("stato_in_attesa", stato_in_attesa, timeout=3600)  # cache per 1h
+
+        # Recupera tutte le opzioni in cache
+        opzioni_dict = cache.get("opzioni_dict")
+        if not opzioni_dict:
+            opzioni_dict = {op.chiave: op for op in Opzione.objects.all()}
+            cache.set("opzioni_dict", opzioni_dict, timeout=3600)
 
         righe_da_creare = []
 
