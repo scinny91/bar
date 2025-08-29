@@ -12,5 +12,6 @@ urlpatterns = [
     path('ordini/consegne/', views.consegne, name='consegne'),
     path('ordini/consegne/riga/<int:pk>/<str:stato>/<int:is_consegna>', views.set_stato_riga_ordine, name='set_stato_riga_ordine'),
     path('ordini/riepilogo/', views.riepilogo_ordini, name='riepilogo_ordini'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 ]
 

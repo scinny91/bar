@@ -24,6 +24,7 @@ def nuovo_ordine(request):
     if request.method == 'POST':
         ordine = Ordine()
         ordine.utente = request.user
+        ordine.stato = Stato.objects.get(chiave="in_attesa")
         ordine.modifica_da_post_request(request.POST, prodotti)
         messages.success(request, f"Ordine #{ordine.id}-{ordine.cliente} inserito con successo.")
         return redirect('lista_ordini')
@@ -84,12 +85,9 @@ def lista_ordini(request):
         'items__opzioni'
     )
 
-    # Totali calcolati come prima
-    totali = Ordine.calcola_totali(ordini)
 
     context = {
         "ordini": ordini,
-        "totali_per_stato_cat_sottocat": totali,
         "date": data_ordine.strftime('%d-%m-%Y'),
         "data_precedente": data_precedente,
         "data_successiva": data_successiva,
@@ -110,9 +108,7 @@ def riepilogo_ordini(request):
         'creato')
 
 
-    totali = Ordine.calcola_totali(ordini)
     context = { "ordini": ordini,
-                "totali_per_stato_cat_sottocat": totali,
                 "date": data_ordine.strftime('%d-%m-%Y'),
                 "data_precedente": data_precedente,
                 "data_successiva": data_successiva,
@@ -120,6 +116,20 @@ def riepilogo_ordini(request):
     }
 
     return render(request, "ordini/lista_ordini.html", context)
+
+@login_required
+def dashboard(request):
+    data_ordine = request.GET.get('data_ordine')
+    data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
+
+    ordini = Ordine.objects.filter(creato__date=data_ordine).order_by(
+        'creato')
+    totali = Ordine.calcola_totali(ordini)
+    context = {
+            "totali": totali,
+    }
+
+    return render(request, "ordini/dashboard.html", context)
 
 
 @login_required

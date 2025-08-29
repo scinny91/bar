@@ -170,31 +170,60 @@ class Ordine(models.Model):
 
     @staticmethod
     def calcola_totali(ordini):
-        def defaultdict_to_dict(d):
-            if isinstance(d, defaultdict):
-                return {k: defaultdict_to_dict(v) for k, v in d.items()}
-            return d
+        """
+        ordini: QuerySet di ordini
+        """
+        stati_ordinati = [
+            Stato.objects.get(chiave="in_attesa"),
+            Stato.objects.get(chiave="in_preparazione"),
+            Stato.objects.get(chiave="pronto"),
+            Stato.objects.get(chiave="non_trovato"),
+            Stato.objects.get(chiave="completato"),
+        ]
 
-        def nested_dict():
-            return defaultdict(nested_dict)
+        # struttura base con Stato come chiave
+        struttura = {stato.chiave: {} for stato in stati_ordinati}
 
-        totali = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {"quantità": 0, "totale": 0})))
-
+        # calcolo totali
         for ordine in ordini:
-            stato = ordine.stato.valore
             for riga in ordine.items.all():
-                cat = riga.prodotto.sottocategoria.categoria.valore if riga.prodotto.sottocategoria.categoria else "Senza categoria"
-                sub = riga.prodotto.sottocategoria.valore if riga.prodotto.sottocategoria else "Senza sottocategoria"
+                chiave_stato = riga.stato.chiave
+                cat = (
+                    riga.prodotto.sottocategoria.categoria.valore
+                    if riga.prodotto.sottocategoria and riga.prodotto.sottocategoria.categoria
+                    else "Senza categoria"
+                )
+                sub = (
+                    riga.prodotto.sottocategoria.valore
+                    if riga.prodotto.sottocategoria
+                    else "Senza sottocategoria"
+                )
 
                 qta = riga.quantita
                 prezzo = float(riga.prodotto.prezzo)
                 tot = qta * prezzo
 
-                totali[stato][cat][sub]["quantità"] += qta
-                totali[stato][cat][sub]["totale"] += tot
+                if cat not in struttura[chiave_stato]:
+                    struttura[chiave_stato][cat] = {}
+                if sub not in struttura[chiave_stato][cat]:
+                    struttura[chiave_stato][cat][sub] = {"quantità": 0, "totale": 0}
 
-        totali = defaultdict_to_dict(totali)
-        return totali
+                struttura[chiave_stato][cat][sub]["quantità"] += qta
+                struttura[chiave_stato][cat][sub]["totale"] += tot
+
+        # costruisco lista finale con stato.valore
+        lista_finale = []
+        for stato in stati_ordinati:
+            chiave = stato.chiave
+            lista_finale.append({
+                "nome": stato.valore,           # qui uso il valore leggibile
+                "categorie": [
+                    {"nome": cat, "sottocategorie": struttura[chiave][cat]}
+                    for cat in struttura[chiave]
+                ]
+            })
+
+        return lista_finale
 
 
 class OrdineRiga(models.Model):

@@ -87,32 +87,5 @@
     {% endfor %}
 </table>
 
-<div class="row">
-  {% for stato, categorie in totali_per_stato_cat_sottocat.items %}
-    <div class="col-md-4 mb-4">
-      <div class="card h-100">
-        <div class="card-header bg-secondary text-white text-capitalize">
-          {{ stato|replace:"_, " }}
-        </div>
-        <div class="card-body">
-          {% for categoria, sottocategorie in categorie.items %}
-            <h5>{{ categoria }}</h5>
-            <ul>
-              {% for sottocategoria, valori in sottocategorie.items %}
-                {% if valori.quantità > 0 %}
-                  <li>
-                    <strong>{{ sottocategoria }}</strong> –
-                    Quantità: {{ valori.quantità }},
-                    Totale: €{{ valori.totale|floatformat:2 }}
-                  </li>
-                {% endif %}
-              {% endfor %}
-            </ul>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-  {% endfor %}
-</div>
 
 {% endblock %}

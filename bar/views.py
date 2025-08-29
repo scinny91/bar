@@ -13,7 +13,7 @@ def user_login(request):
             next_url = request.GET.get("next")  # controlla se c'è il parametro
             if next_url:
                 return redirect(next_url)
-            return redirect("lista_ordini")
+            return redirect("dashboard")
     return render(request, "bar/login.html")
 
 def user_logout(request):
