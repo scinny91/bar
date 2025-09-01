@@ -6,8 +6,9 @@ from django.core.cache import cache
 from bar.prodotti.models import Prodotto, CATEGORIE_PRODOTTO, SOTTOCATEGORIE_PRODOTTO, ComponenteMagazzino, prodottoError
 from bar.core import Stato, Opzione, Box, Postazione
 
-from collections import defaultdict
 from itertools import groupby
+from collections import Counter
+
 
 
 
@@ -167,6 +168,25 @@ class Ordine(models.Model):
                 item.stato = new_stato
             item.save()
 
+    @staticmethod
+    def calcola_da_preparare(righe_ordini):
+        # prendo solo righe in preparazione
+        righe_in_preparazione = [r for r in righe_ordini if r.stato and r.stato.chiave == "in_preparazione"]
+
+        # sommo quantità per prodotto
+        conteggio = Counter()
+        for r in righe_in_preparazione:
+            # per ogni componente di magazzino del prodotto ma solo per ciò che è bloccante
+            for comp in r.prodotto.componentemagazzino_set.filter(bloccante=True):
+                # calcolo la quantità totale da scaricare
+                qta = comp.quantita_totale_per(r.quantita)
+                conteggio[comp.magazzino.nome] += qta
+
+        # genero lista finale, escludendo i totali = 0
+        prodotti_in_preparazione = [
+            (nome, totale) for nome, totale in conteggio.items() if totale > 0
+        ]
+        return prodotti_in_preparazione
 
     @staticmethod
     def calcola_totali(ordini):

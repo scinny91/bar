@@ -218,12 +218,16 @@ def evasione(request):
     righe = OrdineRiga.objects.righe_da_evadere(data_ordine, stati_ordine=["in_preparazione", "pronto"], sottocategorie=sottocategorie_visualizzate)
     righe_raggruppate = OrdineRiga.objects.righe_raggruppate_per_categoria(righe)
 
+    recap = Ordine.calcola_da_preparare(righe)
+
+
     return render(request, 'ordini/evasione.html', {
         'righe_raggruppate': righe_raggruppate,
         'is_consegna': False,
         'box_liberi': ', '.join([i.valore for i in box_associati]),
         'sottocategorie_visualizzate': ', '.join([i.valore for i in sottocategorie_visualizzate]),
-        'title': f"Ordini da evadere {data_ordine.strftime('%d-%m-%Y')}"
+        'title': f"Ordini da evadere {data_ordine.strftime('%d-%m-%Y')}",
+        'recap': recap
     })
 
 @login_required
