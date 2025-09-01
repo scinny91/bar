@@ -35,7 +35,7 @@ class OrdineRigaManager(models.Manager):
             })
         return raggruppate
 
-    def righe_da_evadere(self, data_ordine, stati_ordine=[], sottocategorie=[]):
+    def righe_da_evadere(self, data_ordine, stati_ordine=[], sottocategorie=[], ):
         filtro_base = {
             'ordine__creato__date': data_ordine
         }
@@ -47,7 +47,15 @@ class OrdineRigaManager(models.Manager):
         if sottocategorie:
             filtro_base['prodotto__sottocategoria__in'] = sottocategorie
 
+        # Prefetch dei componenti bloccanti
+        prefetch_componenti = models.Prefetch(
+            'prodotto__componentemagazzino_set',
+            queryset=ComponenteMagazzino.objects.filter(bloccante=True),
+            to_attr='componenti_bloccanti'
+        )
+
         return self.select_related('ordine', 'prodotto') \
+            .prefetch_related(prefetch_componenti) \
             .filter(**filtro_base) \
             .order_by('ordine__creato')
 
@@ -175,16 +183,15 @@ class Ordine(models.Model):
 
         # sommo quantità per prodotto
         conteggio = Counter()
+        # per ogni componente di magazzino del prodotto ma solo per ciò che è bloccante
         for r in righe_in_preparazione:
-            # per ogni componente di magazzino del prodotto ma solo per ciò che è bloccante
-            for comp in r.prodotto.componentemagazzino_set.filter(bloccante=True):
-                # calcolo la quantità totale da scaricare
+            for comp in r.prodotto.componenti_bloccanti:  # già prefetched
                 qta = comp.quantita_totale_per(r.quantita)
                 conteggio[comp.magazzino.nome] += qta
 
         # genero lista finale, escludendo i totali = 0
         prodotti_in_preparazione = [
-            (nome, totale) for nome, totale in conteggio.items() if totale > 0
+            (nome, int(totale)) for nome, totale in conteggio.items() if totale > 0
         ]
         return prodotti_in_preparazione
 

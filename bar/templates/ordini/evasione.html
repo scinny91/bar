@@ -61,7 +61,6 @@
           <tr>
             <th>Ordine #</th>
             <th>Cliente</th>
-            <th>Data</th>
             <th>Prodotto</th>
             <th>Opzioni</th>
             <th>Quantità</th>
@@ -82,8 +81,7 @@
               {% endif %}
               <tr class="{% if class_toggle|divisibleby:2 %}bg-color-even{% else %}bg-color-odd{% endif %}">
                 <td>{{ riga_ordine.ordine.id }}.{{riga_ordine.id}}</td>
-                <td>{{ riga_ordine.ordine.cliente }}</td>
-                <td>{{ riga_ordine.ordine.creato|date:"H:i" }}</td>
+                <td>{{ riga_ordine.ordine.cliente }} [{{ riga_ordine.ordine.creato|date:"H:i" }}]</td>
                 <td>{{ riga_ordine.prodotto.nome }}</td>
                 <td>{{ riga_ordine.opzioni_display }}</td>
                 <td>{{ riga_ordine.quantita }}</td>
