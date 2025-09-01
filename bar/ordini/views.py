@@ -122,8 +122,17 @@ def dashboard(request):
     data_ordine = request.GET.get('data_ordine')
     data_ordine, data_precedente, data_successiva = ottieni_data_ordine_precedente_successiva(data_ordine)
 
-    ordini = Ordine.objects.filter(creato__date=data_ordine).order_by(
-        'creato')
+
+    ordini = (
+        Ordine.objects
+        .filter(creato__date=data_ordine)
+        .select_related()  # eventualmente se Ordine ha FK da seguire
+        .prefetch_related(
+            'items__stato',  # riga.stato
+            'items__prodotto__sottocategoria__categoria',  # riga.prodotto.sottocategoria.categoria
+        )
+        .order_by('creato')
+    )
     totali = Ordine.calcola_totali(ordini)
     context = {
             "totali": totali,
