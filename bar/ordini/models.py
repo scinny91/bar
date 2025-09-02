@@ -35,10 +35,11 @@ class OrdineRigaManager(models.Manager):
             })
         return raggruppate
 
-    def righe_da_evadere(self, data_ordine, stati_ordine=[], sottocategorie=[], ):
+    def righe_da_evadere(self, data_ordine, stati_ordine=None, sottocategorie=None):
         filtro_base = {
             'ordine__creato__date': data_ordine
         }
+
         if stati_ordine:
             filtro_base['stato__chiave__in'] = stati_ordine
         else:
@@ -47,17 +48,22 @@ class OrdineRigaManager(models.Manager):
         if sottocategorie:
             filtro_base['prodotto__sottocategoria__in'] = sottocategorie
 
-        # Prefetch dei componenti bloccanti
         prefetch_componenti = models.Prefetch(
             'prodotto__componentemagazzino_set',
             queryset=ComponenteMagazzino.objects.filter(bloccante=True),
             to_attr='componenti_bloccanti'
         )
 
-        return self.select_related('ordine', 'prodotto') \
-            .prefetch_related(prefetch_componenti) \
-            .filter(**filtro_base) \
+        return (
+            self.select_related(
+                'ordine',
+                'stato',
+                'prodotto__sottocategoria__categoria'
+            )
+            .prefetch_related(prefetch_componenti)
+            .filter(**filtro_base)
             .order_by('ordine__creato')
+        )
 
 class Ordine(models.Model):
 
@@ -179,8 +185,7 @@ class Ordine(models.Model):
     @staticmethod
     def calcola_da_preparare(righe_ordini):
         # prendo solo righe in preparazione
-        righe_in_preparazione = [r for r in righe_ordini if r.stato and r.stato.chiave == "in_preparazione"]
-
+        righe_in_preparazione = (r for r in righe_ordini if r.stato and r.stato.chiave == "in_preparazione")
         # sommo quantità per prodotto
         conteggio = Counter()
         # per ogni componente di magazzino del prodotto ma solo per ciò che è bloccante
@@ -190,9 +195,10 @@ class Ordine(models.Model):
                 conteggio[comp.magazzino.nome] += qta
 
         # genero lista finale, escludendo i totali = 0
-        prodotti_in_preparazione = [
-            (nome, int(totale)) for nome, totale in conteggio.items() if totale > 0
-        ]
+        prodotti_in_preparazione = sorted(
+            ((nome, int(totale)) for nome, totale in conteggio.items() if totale > 0),
+            key=lambda x: x[0]
+        )
         return prodotti_in_preparazione
 
     @staticmethod
